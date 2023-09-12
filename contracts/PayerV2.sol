@@ -125,8 +125,11 @@ contract PayerV2 {
             acceptableTokensArray.deleteItem(_token);
         }
     }
-    function resetRecorded() external onlyOwners {
-        recorded = false;
+    function setRecorded(bool value) external onlyOwners {
+        recorded = value;
+    }
+    function setPaid(bool value) external onlyOwners {
+        paid = value;
     }
 
     function setServiceAddress(address _address) external onlyOwners {
@@ -172,7 +175,17 @@ contract PayerV2 {
     function getTokenBalance(IERC20 token) public view returns (uint256) {
         return token.balanceOf(address(this));
     }
-
+    function getPayoutReport() public view returns (address[] memory, uint256[] memory,address[] memory) {
+        address[] memory token = new address[](recordCount);
+        uint256[] memory value = new uint256[](recordCount);
+        address[] memory user = new address[](recordCount);
+        for (uint256 i = 0; i < recordCount; i++) {            
+            token[i] = address(tokenAddress[i]);
+            value[i] = amount[i];
+            user[i] = userAddress[i];
+        }
+        return (token, value, user);
+    }
     function getPayoutAmount() public view returns (address[] memory, uint256[] memory) {
         address[] memory token = new address[](acceptableTokensArray.length);
         uint256[] memory value = new uint256[](acceptableTokensArray.length);
