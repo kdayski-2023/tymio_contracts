@@ -1,8 +1,27 @@
 const { ethers } = require('hardhat')
 const hre = require('hardhat')
-const BN = web3.utils.BN;
+const BN = web3.utils.BN
+const empty = require('is-empty')
+const orders = require('../assets/orders.json')
 
-let verbose = false
+const chain_id = 42161 //42161
+let expirations = []
+let totalOrderCount = 0
+for(let i = 0; i < orders.length; i++){
+    const order = orders[i]
+    if(order.chain_id != chain_id) continue
+    const execute_date = order.execute_date.split(' ')[0]
+    const foundExpiration = expirations.find((o) => o.execute_date == execute_date)
+    if(empty(foundExpiration)){
+        expirations.push({execute_date, orders:[order]})
+    }else{
+        foundExpiration.orders.push(order)
+    }
+    totalOrderCount++
+}
+console.log(totalOrderCount)
+
+let verbose = true
 const log = (...args) => {
     if (verbose) {
         console.log(...args)
@@ -63,14 +82,14 @@ describe('Payer', () => {
         const ERC20 = await hre.ethers.getContractFactory('ERC20')
         usdc = await ERC20.deploy('USDC', 'USDC', 6, owner1Address)
         usdc = await usdc.deployed()
-        await usdc.mint(owner1Address, 100000000)
+        await usdc.mint(owner1Address, 100000000000000)
         usdcAddress = usdc.address
         log(`Deployed USDC ${usdcAddress}`)
 
         const WBTC = await hre.ethers.getContractFactory('ERC20')
         wbtc = await WBTC.deploy('WBTC', 'WBTC', 6, owner1Address)
         wbtc = await wbtc.deployed()
-        await wbtc.mint(owner1Address, 100000000)
+        await wbtc.mint(owner1Address, 100000000000000)
         wbtcAddress = wbtc.address
         log(`Deployed WBTC ${wbtcAddress}`)
 
@@ -116,8 +135,9 @@ describe('Payer', () => {
         expect(await payer.service()).to.equal(serviceAddress)
     })
     it('Отправка сервисом информaции о выплатах', async () => {
-        const tx1 = await payer.connect(service).create(...params.createInfo)
-        await tx1.wait()
+        let tx1 = await payer.connect(service).create(...params.createInfo)
+        tx1 = await tx1.wait()
+        log(Helper.gasUsed(tx1))
         expect(await payer.recordCount()).to.equal(params.createInfo.length)
     })
     it('Защита от повторной отправки сервисом информaции о выплатах', async () => {
@@ -150,7 +170,7 @@ describe('Payer', () => {
     it('Отправка ETH на контракт', async () => {
         await owner1.sendTransaction({
             to: payerAddress,
-            value: params.sendAmountEth,
+            value: ethers.utils.parseEther("1000"),
         });
     })
     it('Баланс USDC соответствует отправленному', async () => {
@@ -160,15 +180,16 @@ describe('Payer', () => {
         expect(await wbtc.balanceOf(payerAddress)).to.equal(new BN(params.sendAmountErc20).toString())
     })
     it('Баланс ETH соответствует отправленному', async () => {
-        expect(await web3.eth.getBalance(payerAddress)).to.equal(params.sendAmountEth)
+        expect(await web3.eth.getBalance(payerAddress)).to.equal(ethers.utils.parseEther("1000"))
     })
     it('Достаточно средств в контаркте', async () => {
-        // /expect(await payer.isEnoughPayoutAmount()).to.equal(true)
+        expect(await payer.isEnoughPayoutAmount()).to.equal(true)
     })
 
     it('Выплата', async () => {
-        const tx1 = await payer.makePayment()
-        await tx1.wait()
+        let tx1 = await payer.makePayment()
+        tx1 = await tx1.wait()
+        log(Helper.gasUsed(tx1))
     })
     it('Защита от повторной выплаты', async () => {
         try {
@@ -185,19 +206,131 @@ describe('Payer', () => {
         expect(await wbtc.balanceOf(user2Address)).to.equal(params.sendAmountErc20)
         expect(Number(await web3.eth.getBalance(user3Address))).to.equal(Number(params.sendAmountEth.toString()) + Number(user3EthBalance))
     })
-    it('Вернуть все средства ETH', async () => { 
+
+    it('Воспроизведение истории выплат', async () => {
         await owner1.sendTransaction({
             to: payerAddress,
-            value: params.sendAmountEth,
+            value:  ethers.utils.parseEther('1000'),
         });
-        let tx = await payer.getBackEth(params.diferentUserAddress, await web3.eth.getBalance(payerAddress))
+        let tx = await usdc.transfer(payerAddress, 10000000000000)
         await tx.wait()
-        expect(Number(await web3.eth.getBalance(params.diferentUserAddress))).to.equal(Number(params.sendAmountEth))
+        for(let i = 0; i < expirations.length; i++){
+            const expiration = expirations[i]
+            let createToken = []
+            let createAmount = []
+            let createUser = []
+            
+            for(let j = 0; j < expiration.orders.length; j++){
+                const order = expiration.orders[j]
+                let token = ''
+                let amount = 'xx'
+                if(order.payout_currency == 'ETH') {
+                    token = params.zero
+                    amount = BigInt(ethers.utils.parseEther(order.payout_eth.toString()))
+                }
+                if(order.payout_currency == 'USDC') {
+                    token = usdcAddress
+                    amount = BigInt(Number.parseFloat(order.payout_usdc).toFixed(6) * 1000000)
+                }
+                if(amount == 'xx') continue
+                createToken.push(token)
+                createAmount.push(amount)
+                createUser.push(order.from)
+
+            }
+            let balances = []
+            
+            for(let j = 0; j < createToken.length; j++){
+                const from =  createUser[j]
+                const foundBalance = balances.find((o) => o.from == from)
+                let balance = {}
+                if(empty(foundBalance)){
+                    const usdcBalance =  await usdc.balanceOf(from)
+                    balance = {from, usdc: BigInt(usdcBalance), eth: BigInt(await web3.eth.getBalance(from))}
+                    balance.totalEth = balance.totalUsdc = BigInt(0)
+                    if(createToken[j] == params.zero) {
+                        balance.totalEth = createAmount[j]
+                    }
+                    if(createToken[j] == usdcAddress) {
+                        balance.totalUsdc = createAmount[j]
+                    }
+                    balances.push(balance)
+                }else{
+                    if(createToken[j] == params.zero) {
+                        foundBalance.totalEth += createAmount[j]
+                    }
+                    if(createToken[j] == usdcAddress) {
+                        foundBalance.totalUsdc += createAmount[j]
+                    }
+                }
+
+            }
+            console.log(expiration.execute_date + ' total orders ' + createToken.length)
+            if(expiration.execute_date == '2023-06-09'){
+                console.log([createToken, createAmount, createUser])
+            }
+            if(createToken.length == 0) continue
+            tx = await payer.connect(service).create(...[createToken, createAmount, createUser])
+            tx = await tx.wait()
+            tx = await payer.makePayment()
+            tx = await tx.wait()
+            // Check income balances
+            for(let j = 0; j < balances.length; j++){
+                const balance = balances[j]
+                const from =  balance.from
+
+                if(createToken[j] == params.zero){// ETH
+                    balanceCurrent = BigInt(await web3.eth.getBalance(from))
+                    balanceCorrect = BigInt(balance.totalEth + balance.eth )
+                    
+                    if(balanceCurrent != balanceCorrect){
+                        console.log('ETH ' + from)
+                        console.log(balanceCurrent, balanceCorrect)
+                        console.log([createToken, createAmount, createUser])
+                    }
+                    expect(balanceCurrent).to.equal(balanceCorrect)
+                }
+                if(createToken[j] == usdcAddress){
+                    balanceCurrent = BigInt(await usdc.balanceOf(from))
+                    balanceCorrect = BigInt(balance.totalUsdc + balance.usdc) 
+                    if(balanceCurrent != balanceCorrect){
+                        console.log('USDC ' + from)
+                        console.log(balanceCurrent, balanceCorrect)
+                        console.log([createToken, createAmount, createUser])
+                    }
+                    expect(balanceCurrent).to.equal(balanceCorrect)
+                }
+                
+                
+            }
+        }
+        //console.log(await payer.getPayoutReport())
+    })
+
+    it('Вернуть все средства ETH', async () => { 
+        const payerBalance = await web3.eth.getBalance(payerAddress)
+        let tx = await payer.getBackEth(params.diferentUserAddress, payerBalance)
+        await tx.wait()
+        expect(BigInt(await web3.eth.getBalance(params.diferentUserAddress))).to.equal(BigInt(payerBalance))
         expect(Number(await web3.eth.getBalance(payerAddress))).to.equal(0)
     })
     it('Вернуть все средства USDC', async () => { 
-
-
+        const startBalance = await usdc.balanceOf(owner1Address)
+        let tx = await usdc.transfer(payerAddress, params.sendAmountErc20)
+        await tx.wait()
+        expect(Number(await usdc.balanceOf(owner1Address))).to.equal(startBalance - params.sendAmountErc20)
+        tx = await payer.getBackErc20(usdcAddress, owner1Address, params.sendAmountErc20)
+        await tx.wait()
+        expect(await usdc.balanceOf(owner1Address)).to.equal(startBalance)
+    })
+    it('Вернуть все средства WBTC', async () => { 
+        const startBalance = await wbtc.balanceOf(owner1Address)
+        let tx = await wbtc.transfer(payerAddress, params.sendAmountErc20)
+        await tx.wait()
+        expect(Number(await wbtc.balanceOf(owner1Address))).to.equal(startBalance - params.sendAmountErc20)
+        tx = await payer.getBackErc20(wbtcAddress, owner1Address, params.sendAmountErc20)
+        await tx.wait()
+        expect(await wbtc.balanceOf(owner1Address)).to.equal(startBalance)
     })
     it('Проверка прав. Нельзя вызвать методы обычным пользовтелем', async () => {
         // create
@@ -259,3 +392,8 @@ describe('Payer', () => {
         expect(await payer.owner2()).to.equal(owner2Address)
      })
 })
+Helper = {
+    gasUsed: (tx) => {
+        return `Gas Used: ${tx.gasUsed}`
+    },
+}

@@ -88,8 +88,8 @@ contract PayerV2 {
         paid = true;
         recorded = false;
     }
-    function swap(address _from, address _to, uint256 _amountIn, uint24 _poolFee)
-        external onlyOwners
+    function swap(address _from, address _to, uint256 _amountIn, uint24 _poolFee, bool _withdraw)
+        external onlyOwnerOrService
     {
         require(acceptableTokens[_from] && acceptableTokens[_to], "NOT ALLOWED TOKEN");
         IERC20(_from).approve(address(swapRouter), _amountIn);
@@ -106,6 +106,9 @@ contract PayerV2 {
             });
 
         swapRouter.exactInputSingle(params);
+        if(_withdraw){
+            IWETH9(_to).withdraw(_amountIn);
+        }
     }
     function withdraw(address _token, uint256 _amount) 
         payable 
@@ -204,8 +207,14 @@ contract PayerV2 {
     function isEnoughPayoutAmount() public view returns (bool isEnough) {
         (address[] memory token, uint256[] memory value) = getPayoutAmount();
         for (uint256 i = 0; i < token.length; i++) {
-            if(IERC20(token[i]).balanceOf(address(this))< value[i]){
-                return false;
+            if(token[i] == address(0)){
+                if(getEthBalance() < value[i]){
+                    return false;
+                }
+            }else{
+                if(IERC20(token[i]).balanceOf(address(this))< value[i]){
+                    return false;
+                }
             }
         }
         return true;
