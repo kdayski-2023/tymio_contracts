@@ -4,7 +4,7 @@ const BN = web3.utils.BN
 const empty = require('is-empty')
 const orders = require('../assets/orders.json')
 
-const chain_id = 42161 //42161
+const chain_id = 1 //42161
 let expirations = []
 let totalOrderCount = 0
 for(let i = 0; i < orders.length; i++){
@@ -230,7 +230,7 @@ describe('Payer', () => {
                 }
                 if(order.payout_currency == 'USDC') {
                     token = usdcAddress
-                    amount = BigInt(Number.parseFloat(order.payout_usdc).toFixed(6) * 1000000)
+                    amount = BigInt(parseInt(Number.parseFloat(order.payout_usdc).toFixed(6) * 1000000))
                 }
                 if(amount == 'xx') continue
                 createToken.push(token)
@@ -267,7 +267,7 @@ describe('Payer', () => {
             }
             console.log(expiration.execute_date + ' total orders ' + createToken.length)
             if(expiration.execute_date == '2023-06-09'){
-                console.log([createToken, createAmount, createUser])
+                // console.log([createToken, createAmount, createUser])
             }
             if(createToken.length == 0) continue
             tx = await payer.connect(service).create(...[createToken, createAmount, createUser])

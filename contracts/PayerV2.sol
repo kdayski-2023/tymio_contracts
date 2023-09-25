@@ -4,7 +4,6 @@ pragma abicoder v2;
 
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "./lib/ArrayUtils.sol";
-import "hardhat/console.sol";
 
 interface IERC20 {
     function balanceOf(address account) external view returns (uint256);
@@ -88,10 +87,13 @@ contract PayerV2 {
         paid = true;
         recorded = false;
     }
-    function swap(address _from, address _to, uint256 _amountIn, uint24 _poolFee, bool _withdraw)
+    function swapExactInputSingle(address _from, address _to, uint256 _amountIn, uint24 _poolFee, bool _deposit, bool _withdraw)
         external onlyOwnerOrService
     {
         require(acceptableTokens[_from] && acceptableTokens[_to], "NOT ALLOWED TOKEN");
+        if(_deposit){
+            IWETH9(_from).deposit{ value: _amountIn }();
+        }
         IERC20(_from).approve(address(swapRouter), _amountIn);
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
             .ExactInputSingleParams({
@@ -110,12 +112,47 @@ contract PayerV2 {
             IWETH9(_to).withdraw(_amountIn);
         }
     }
+    function swapExactOutputSingle(address _from, address _to, uint _amountOut, uint _amountInMaximum, uint24 _poolFee, bool _deposit, bool _withdraw) external onlyOwnerOrService {
+        require(acceptableTokens[_from] && acceptableTokens[_to], "NOT ALLOWED TOKEN");
+        if(_deposit){
+            IWETH9(_from).deposit{ value: _amountInMaximum }();
+        }
+        IERC20(_from).approve(address(swapRouter), _amountInMaximum);
+        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter.ExactOutputSingleParams({
+                tokenIn: _from,
+                tokenOut: _to,
+                fee: _poolFee,
+                recipient: address(this),
+                deadline: block.timestamp,
+                amountOut: _amountOut,
+                amountInMaximum: _amountInMaximum,
+                sqrtPriceLimitX96: 0
+            });
+        uint256 amountIn = swapRouter.exactOutputSingle(params);
+        if (amountIn < _amountInMaximum) {
+             IERC20(_from).approve(address(swapRouter), 0);
+        }
+        if(_withdraw){
+            IWETH9(_to).withdraw(amountIn);
+        }
+    }
     function withdraw(address _token, uint256 _amount) 
         payable 
         external
         onlyOwners
     {
         IWETH9(_token).withdraw(_amount);
+    }
+    
+    function deposit(address _token, uint256 _amount) 
+        payable 
+        external
+        onlyOwners
+    {
+        IWETH9(_token).deposit{ value: _amount }();
+    }
+    function setApprove(address _token, address _spender, uint256 _amount) external onlyOwners {
+        IERC20(_token).approve(_spender, _amount);
     }
     function setSwapRouter(address _router) external onlyOwners {
         swapRouter = ISwapRouter(_router);
