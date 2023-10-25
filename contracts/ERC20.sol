@@ -175,8 +175,6 @@ contract ERC20 {
         _name = __name;
         _symbol = __symbol;
         _decimals = __decimals;
-
-        _mint(owner, 100); // CAUTION!
     }
 
     /**
