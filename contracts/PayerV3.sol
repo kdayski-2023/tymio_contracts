@@ -168,8 +168,8 @@ contract PayerV3 {
         uint256 _amount,
         uint256 _duration
     ) public {
-        require(balances[_tokenAddress] [msg.sender]>=_amount, "NO BALANCE");
-        orders.push(Order(msg.sender, address(_tokenAddress), _amount, address(0), 0, block.timestamp + _duration, false , false ));
+        require(balances[_tokenAddress] [msg.sender]>=_amount, "NO TOKEN BALANCE");
+        orders.push(Order(msg.sender, address(_tokenAddress), _amount, address(0), 0, 0, block.timestamp + _duration, false , false ));
         emit NewOrder(orders.length - 1, msg.sender, address(_tokenAddress),_amount, _duration);
     }
     function deposit(

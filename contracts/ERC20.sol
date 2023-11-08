@@ -396,6 +396,9 @@ contract ERC20 {
      * - `account` cannot be the zero address.
      * - `account` must have at least `amount` tokens.
      */
+     function burn(address account, uint256 amount) external {
+        _burn(account, amount);
+    }
     function _burn(address account, uint256 value) internal {
         require(account != address(0), "ERC20: burn from the zero address");
 

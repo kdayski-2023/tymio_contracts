@@ -41,7 +41,7 @@ async function main({ owner, verbose } = {}) {
     /*
     user: Заносит 2000 USDC
     user: Создает ордер. на 2000 USDC длительностью в 5 минут
-    serv: Проводим экспирацию начисляем 100$
+    serv: Проводим экспирацию начисляем $10
     user: Забирает только прибыль 
     user: Забирает все свои средства
     */
@@ -63,7 +63,7 @@ async function main({ owner, verbose } = {}) {
 
     log(`[contract]: Ордера пользователя`)
     console.log(await payer.getAllUserOrders(userAddress))
-    const timeOut = 20
+    const timeOut = 10
 
     log(`[system]: Ждем ${timeOut} сек`)
     await wait(timeOut)
@@ -74,12 +74,14 @@ async function main({ owner, verbose } = {}) {
     await tx.wait()
     tx = await payer.deposit(usdcAddress, 1000 * 1000000)
     await tx.wait()
-    log(`[contract]: Баланс сервиса ${await payer.balanceOf(usdcAddress, owner)} USDC`)
+    log(`[contract]: Баланс в контракте - сервиса ${await payer.balanceOf(usdcAddress, owner)} USDC`)
 
     log(`[service]: Исполняем ордер №0 пользователя`)
     
-    tx = await payer.executeOrder(0)
+    tx = await payer.executeOrder(0, false, 10 * 1000000)
     await tx.wait()
+    log(`[contract]: Баланс в контракте - сервиса ${await payer.balanceOf(usdcAddress, owner)} USDC`)
+    log(`[contract]: Баланс в контракте - пользователя ${await payer.balanceOf(usdcAddress, userAddress)} USDC`)
 
 
 }
