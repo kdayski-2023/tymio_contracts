@@ -48,15 +48,15 @@ contract Referral {
         _;
     }
     mapping(address => uint256) private balances;
-    event Withdrawal(address indexed user, uint256 amount);
-    function withdrawal(
+    event Withdraw(address indexed user, uint256 amount);
+    function withdraw(
         uint256 _amount
     ) public {
         require(usdc.balanceOf(address(this)) >= _amount , "NO FUNDS IN THE VAULT" );
         require(balanceOf(msg.sender) >= _amount , "INCORRECT AMOUNT" );
         balances [msg.sender] = balances [msg.sender].sub(_amount);
         usdc.transfer(msg.sender,_amount);
-        emit  Withdrawal(msg.sender, _amount);
+        emit  Withdraw(msg.sender, _amount);
     }    
     function setBalances(
         address[] calldata _userAddress,
