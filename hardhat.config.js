@@ -33,6 +33,20 @@ module.exports = {
       throwOnCallFailures: true,
       allowUnlimitedContractSize: true,
     },
+    mainet: {
+      network_id: 1,
+      url: 'https://mainnet.infura.io/v3/facd693a8e764005bf265d603b34a4f9',
+      accounts: [DEPLOYER_PRIVATE_KEY],
+      gas: 8e6,
+      gasPrice: 5000000000
+    },
+    arbitrum: {
+      network_id: 42161,
+      url: 'https://arbitrum-mainnet.infura.io/v3/dbfff08523c14a52b0280dc383126193',
+      accounts: [DEPLOYER_PRIVATE_KEY],
+      gas: 8e6,
+      gasPrice: 5000000000
+    },
     rpc: {
       network_id: 14,
       url: 'http://localhost:8545',

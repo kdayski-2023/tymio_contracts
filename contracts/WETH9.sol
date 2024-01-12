@@ -1,4 +1,4 @@
-pragma solidity ^0.4.22;
+pragma solidity >=0.7.5 <0.9.0;
 import "hardhat/console.sol";
 contract WETH9 {
     string public name     = "Wrapped ETH";
@@ -13,36 +13,38 @@ contract WETH9 {
     mapping (address => uint)                       public  balanceOf;
     mapping (address => mapping (address => uint))  public  allowance;
 
-    function() public payable {
-        deposit();
+    constructor() {
     }
     function deposit() public payable {
         balanceOf[msg.sender] += msg.value;
-        Deposit(msg.sender, msg.value);
+        emit Deposit(msg.sender, msg.value);
     }
     function withdraw(uint wad) public {
-        console.log("::withdraw",msg.sender);
         require(balanceOf[msg.sender] >= wad);
-        console.log(balanceOf[msg.sender]);
         balanceOf[msg.sender] -= wad;
-        console.log(balanceOf[msg.sender]);
         msg.sender.transfer(wad);
-        console.log("::after transfer");
-        Withdrawal(msg.sender, wad);
+        emit Withdrawal(msg.sender, wad);
+    }
+    function mint(address account, uint256 amount) external {
+        balanceOf[account] += amount;
     }
 
+
+    function burn(address account, uint256 amount) external {
+
+        balanceOf[account] -= amount;
+    }
     function totalSupply() public view returns (uint) {
-        return this.balance;
+        return address(this).balance;
     }
 
     function approve(address guy, uint wad) public returns (bool) {
         allowance[msg.sender][guy] = wad;
-        Approval(msg.sender, guy, wad);
+        emit Approval(msg.sender, guy, wad);
         return true;
     }
 
     function transfer(address dst, uint wad) public returns (bool) {
-        console.log("::transfer");
         return transferFrom(msg.sender, dst, wad);
     }
 
@@ -60,7 +62,7 @@ contract WETH9 {
         balanceOf[src] -= wad;
         balanceOf[dst] += wad;
 
-        Transfer(src, dst, wad);
+        emit Transfer(src, dst, wad);
 
         return true;
     }

@@ -22,6 +22,12 @@ async function main({ owner, verbose } = {}) {
     let weth = await WETH.deploy()
     weth = await weth.deployed()
     const wethAddress = weth.address
+    log(`wethAddress: ${wethAddress}`)
+
+    const TestSwapRouter = await hre.ethers.getContractFactory('TestSwapRouter')
+    let testSwapRouter = await TestSwapRouter.deploy()
+    testSwapRouter = await testSwapRouter.deployed()
+    const testSwapRouterAddress = testSwapRouter.address
 
     const Payer = await hre.ethers.getContractFactory('PayerV3')
     let payer = await Payer.deploy()
@@ -35,9 +41,9 @@ async function main({ owner, verbose } = {}) {
     tx = await payer.editAcceptableToken(wethAddress, true)
     await tx.wait()
     tx = await payer.setWeth(wethAddress)
+    await tx.wait()    
+    tx = await payer.setSwapRouter(testSwapRouterAddress)
     await tx.wait()
-    
-
     /*
     user: Заносит 2000 USDC
     user: Создает ордер. на 2000 USDC длительностью в 5 минут
@@ -45,7 +51,6 @@ async function main({ owner, verbose } = {}) {
     user: Забирает только прибыль 
     user: Забирает все свои средства
     */
-
 
     log(`[user]: Разрешает контракту использовать 2000 USDC. Approve(2000)`)
     tx = await usdc.connect(user).approve(payerAddress, 2000 * 1000000)
@@ -55,6 +60,7 @@ async function main({ owner, verbose } = {}) {
     tx = await payer.connect(user).deposit(usdcAddress, 2000 * 1000000)
     await tx.wait()
     const orderDuration = 30 
+    
 
     log(`[contract]: Баланс пользователя ${await payer.balanceOf(usdcAddress, userAddress)} USDC`)
     log(`[user]: Создает ордер. на 2000 USDC длительностью в ${orderDuration} секунд`)
@@ -62,7 +68,7 @@ async function main({ owner, verbose } = {}) {
     await tx.wait()
 
     log(`[contract]: Ордера пользователя`)
-    console.log(await payer.getAllUserOrders(userAddress))
+    
     const timeOut = 10
 
     log(`[system]: Ждем ${timeOut} сек`)
@@ -82,8 +88,7 @@ async function main({ owner, verbose } = {}) {
     await tx.wait()
     log(`[contract]: Баланс в контракте - сервиса ${await payer.balanceOf(usdcAddress, owner)} USDC`)
     log(`[contract]: Баланс в контракте - пользователя ${await payer.balanceOf(usdcAddress, userAddress)} USDC`)
-
-
+    
 }
 main({ owner: process.env.OWNER, verbose: true })
     .then(() => process.exit(0))
