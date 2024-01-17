@@ -115,12 +115,11 @@ interface IWETH9 is IERC20 {
     function deposit() external payable;
     function withdraw(uint256) external payable;
 }
-contract PayerV3 {
+contract PayerV3 {    
     using SafeMath for uint256;
-    using ArrayUtils for address[];
+    using ArrayUtils for address[];    
     address public owner1;
-    address public owner2;
-    
+    address public owner2;    
     struct Order {
         address user;
         IERC20 tokenIn;
@@ -137,6 +136,11 @@ contract PayerV3 {
         bool[] swap;
         uint256[] additionalAmount;
     }
+    struct SwapParams {
+        address[] tokenIn;
+        address[] tokenOut;
+        uint256[] amount;
+    }
     constructor() {
         owner1 = msg.sender;
         payerAddress = owner1;// !DEV
@@ -150,12 +154,14 @@ contract PayerV3 {
     ISwapRouter public swapRouter = ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
 
     mapping(IERC20 => mapping(address => uint256)) public balances;
+    mapping(IERC20 => mapping(IERC20 => uint256)) public swaps;
     Order[] public orders;
     mapping(address => bool) public acceptableTokens; 
     address[] public acceptableTokensArray;
     address public weth;
+    IERC20 public usdToken;
     uint maxDuration = 90 days;
-    uint maxExecutionTime = 1 hours;
+    uint maxExecutionTime = 1 minutes;//1 hours;
     event Deposit(address indexed user,address indexed token, uint256 amount);
     event NewOrder(uint256 indexed orderId, address indexed user, address indexed token, uint256 amount, uint256 duration);
     address public payerAddress;
@@ -176,6 +182,7 @@ contract PayerV3 {
         uint256 _duration
     ) public {
         require(balances[_tokenAddressIn] [msg.sender]>=_amount, "NO TOKEN BALANCE");
+        balances[_tokenAddressIn] [msg.sender] = balances[_tokenAddressIn] [msg.sender].sub(_amount);
         orders.push(Order(msg.sender, _tokenAddressIn, _amount, _tokenAddressOut, 0, 0, block.timestamp + _duration, false , false ));
         emit NewOrder(orders.length - 1, msg.sender, address(_tokenAddressIn),_amount, _duration);
     }
@@ -198,33 +205,62 @@ contract PayerV3 {
         balances[IERC20(weth)] [msg.sender] = balances[IERC20(weth)] [msg.sender].add(msg.value) ;
         emit Deposit(msg.sender, weth, msg.value);
     }
-    function executeOrders(ExecuteOrderParams calldata params) public onlyOwners {
+    function executeOrders(ExecuteOrderParams calldata params, uint256[] calldata validateAmounts) public onlyOwners {
         require(params.orderIds.length == params.swap.length && params.swap.length == params.additionalAmount.length, "DIFFERENT LENGTH");
+        // TODO OPTIMISE
         for (uint256 i = 0; i < params.orderIds.length; i++) {       
-            Order storage order = orders[params.orderIds[i]];        
-            order.additionalAmount = params.additionalAmount[i]; // ! ADD _aditionAmount Limit check
-            order.completed = true;
-            //if(params){
-            
-            //}
-
+            if(params.swap[i]){
+                Order memory order = orders[params.orderIds[i]];
+                swaps[order.tokenIn][order.tokenOut] = 0;
+            }
         }
-        
+        for (uint256 i = 0; i < params.orderIds.length; i++) {       
+            if(params.swap[i]){
+                Order memory order = orders[params.orderIds[i]];
+                swaps[order.tokenIn][order.tokenOut] = order.amountIn;
+            }
+        }
+        uint256[] memory amountsForSwap ;
+        for (uint256 i = 0; i < params.orderIds.length; i++) {       
+            if(params.swap[i]){
+                Order memory order = orders[params.orderIds[i]];
+                swaps[order.tokenIn][order.tokenOut] = order.amountIn;
+            }
+        }
+        // VALIDATE
+
+        for (uint256 i = 0; i < params.orderIds.length; i++) {       
+             _executeOrder(params.orderIds[i], params.swap[i],params.additionalAmount[i]);            
+        }
     }
-    function testEncode(ExecuteOrderParams calldata input) public pure returns (bytes memory) {
+    function _executeOrder(uint256 orderId, bool swap, uint256 additionalAmount) private {
+            Order storage order = orders[orderId];
+            require(block.timestamp >= order.endTimestamp, "WRONG EXPIRATION TIME");            
+            order.additionalAmount = additionalAmount; // ! ADD _aditionAmount Limit check
+            order.completed = true;
+            if(swap){
+                
+            }else{
+                order.tokenOut = order.tokenIn;
+                order.amountOut = order.amountIn;
+            }
+    }
+
+    function testEncode(ExecuteOrderParams calldata input) public pure returns (bytes memory) {//!DELETE
         return abi.encode(input);
     }
 
-    function withdrawalOrder(
+    function claimOrder(
         uint256 _orderId
     ) public {
         Order storage order = orders[_orderId];
         require(!order.withdrawn, "ORDER ALREADY WITHDRAWN" );
         require(order.completed || block.timestamp > order.endTimestamp + maxExecutionTime, "ORDER NOT COMPLETED" );
-        //if(order.aditionAmount > 0 ){
-        //    _transfer(IERC20(order.tokenOut), payerAddress, order.user, order.aditionAmount);
-        //}
-        balances[IERC20(order.tokenOut)][order.user].add(order.amountOut);
+        if(order.additionalAmount > 0 ){
+            _balanceTransfer(usdToken, payerAddress, order.user, order.additionalAmount);
+        }
+        balances[order.tokenOut][order.user] = balances[order.tokenOut][order.user].add(order.amountOut);
+        
         order.withdrawn = true;
 
     }
@@ -232,7 +268,7 @@ contract PayerV3 {
         IERC20 _tokenAddress,
         uint256 _amount
     ) public {
-        balances[_tokenAddress][msg.sender].sub(_amount);
+        balances[_tokenAddress][msg.sender] = balances[_tokenAddress][msg.sender].sub(_amount);
         _tokenAddress.transfer(msg.sender, _amount);
     }
 
@@ -242,7 +278,7 @@ contract PayerV3 {
     ) public view returns (uint256) {
         return balances[_tokenAddress] [_user] ;
     }
-    function _transfer(
+    function _balanceTransfer(
         IERC20 _tokenAddress,
         address _sender,
         address _recipient,
@@ -287,5 +323,8 @@ contract PayerV3 {
     }
     function setWeth(address _weth) external onlyOwners {
         weth = _weth;
+    }
+    function setUsdToken(IERC20 _usdToken) external onlyOwners {
+        usdToken = _usdToken;
     }
 }

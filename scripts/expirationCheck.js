@@ -35,9 +35,6 @@ async function main({ owner, verbose } = {}) {
         const value = `${part1}.${part0}`
         console.log(`${user} ${tokenInfo.name} ${value} ${lng}`)
     }
-        
-    
-    
 }
 main({ owner: process.env.OWNER, verbose: true })
     .then(() => process.exit(0))
