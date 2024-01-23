@@ -8,14 +8,13 @@ async function main({ owner, verbose } = {}) {
     const user = accounts[2]
     const userAddress = user.address
     log(`user: ${userAddress}`)
+
     const Usdc = await hre.ethers.getContractFactory('ERC20')
     let usdc = await Usdc.deploy("USDC", "USDC", 6, userAddress);
     usdc = await usdc.deployed()
     const usdcAddress = usdc.address
-    // минтим пользователю
     tx = await usdc.mint(userAddress, 2000 * 1000000)
     await tx.wait()
-    // минтим овнеру
     tx = await usdc.mint(owner, 100000 * 1000000)
     await tx.wait()
     log(`usdc: ${usdcAddress}`)
@@ -29,11 +28,14 @@ async function main({ owner, verbose } = {}) {
     let testSwapRouter = await TestSwapRouter.deploy()
     testSwapRouter = await testSwapRouter.deployed()
     const testSwapRouterAddress = testSwapRouter.address
+    tx = await testSwapRouter.setRatio(usdcAddress,wethAddress, 400000000000000) 
+    await tx.wait()
+    tx = await testSwapRouter.setRatio(wethAddress,usdcAddress, 2500000000) 
+    await tx.wait()
 
     const Payer = await hre.ethers.getContractFactory('PayerV3')
     let payer = await Payer.deploy()
     payer = await payer.deployed()
-    
     const payerAddress = payer.address
     log(`Deploed Payer ${payerAddress}`)
 
@@ -47,6 +49,8 @@ async function main({ owner, verbose } = {}) {
     await tx.wait()    
     tx = await payer.setSwapRouter(testSwapRouterAddress)
     await tx.wait()
+
+    console.log(await payer.calculatePercentage(2500000000, 100))
     /*
     user: Заносит 2000 USDC
     user: Создает ордер на покупку ETH за 2000 USDC длительностью в 5 минут
@@ -54,7 +58,6 @@ async function main({ owner, verbose } = {}) {
     user: Забирает только прибыль 
     user: Забирает все свои средства
     */
-    console.log(await payer.concat(usdcAddress, wethAddress))
     
     log(`[user]: Разрешает контракту использовать 2000 USDC. Approve(2000)`)
     tx = await usdc.connect(user).approve(payerAddress, 2000 * 1000000)
@@ -69,7 +72,7 @@ async function main({ owner, verbose } = {}) {
     log(`[contract]: Баланс пользователя ${await payer.balanceOf(usdcAddress, userAddress)} USDC`)
     log(`[user]: Создает ордер на покупку ETH за 2000 USDC длительностью ${orderDuration} секунд`)
     tx = await payer.connect(user).makeOrder(usdcAddress, wethAddress, 2000 * 1000000, orderDuration)
-    await tx.wait()
+    tx = await tx.wait()
     log(`[contract]: Баланс пользователя ${await payer.balanceOf(usdcAddress, userAddress)} USDC`)
     log(`[contract]: Ордера пользователя`)
     
