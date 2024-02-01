@@ -11,7 +11,7 @@ async function main({ owner, verbose } = {}) {
         let accounts = await ethers.getSigners()
     owner = accounts[0].address
     
-    const chainId = 42161     // 
+    const chainId =  42161    // 42161
     const PayerV2 = await hre.ethers.getContractAt('PayerV2', '0x0d0c69c9e31923712f2d51d994950d08ed9b2958' )
     if(await PayerV2.isEnoughPayoutAmount()){
         log.green(`isEnoughPayoutAmount: YES`)
@@ -64,3 +64,11 @@ const log = {
   blue: (text) => console.log("\x1b[34m" + text + reset),
   yellow: (text) => console.log("\x1b[33m" + text + reset),
 };
+function intToStr(amount, decimal, nums=2){
+    const decimal = tokenInfo.decimal
+    const part0 = amount.toString().substr(-decimal,decimal)
+    const part1 = amount.toString().substr(0,amount.toString().length-decimal)
+    const lng = amount.toString().length
+    const value = `${part1}.${part0}`
+    
+}

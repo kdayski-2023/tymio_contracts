@@ -35,15 +35,15 @@ contract TestSwapRouter {
     {
         IERC20Debug tokenIn = IERC20Debug(params.tokenIn);
         IERC20Debug tokenOut = IERC20Debug(params.tokenOut);
-        tokenIn.burn(msg.sender, params.amountIn);
-        tokenOut.mint(msg.sender, params.amountIn * 2);
-        amountOut = params.amountIn * 2;
+        tokenIn.burn(msg.sender, params.amountIn);        
+        amountOut = calcAmount(params.tokenIn, params.tokenOut, params.amountIn );
+        tokenOut.mint(msg.sender, amountOut);
     }
     function setRatio(address tokenIn,address tokenOut, uint256 ratio) external{
-        console.log(ratio);
         ratios[tokenIn][tokenOut] = ratio;
     }
-    function calcAmount(address tokenIn,address tokenOut, uint256 amount) external view returns (uint256){
-        return  amount * ratios[tokenIn][tokenOut] / 10 ** IERC20Debug(tokenIn).decimals();
+    function calcAmount(address tokenIn,address tokenOut, uint256 amountIn) public view returns (uint256){
+        
+        return amountIn * ratios[tokenIn][tokenOut] / 10 ** IERC20Debug(tokenIn).decimals();
     }
 }
