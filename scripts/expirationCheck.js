@@ -1,3 +1,4 @@
+const BN = require('bn.js')
 const tokensInfo = [
     {address:'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', cid: 1, name: 'USDC', decimal: 6},
     {address:'0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599', cid: 1, name: 'WBTC', decimal: 8},
@@ -23,17 +24,26 @@ async function main({ owner, verbose } = {}) {
     const amounts = payoutReport[1]
     const users = payoutReport[2]
     console.log(`Count is ${tokens.length}`)
+    
+    const resultData = []
     for(const index in tokens){
-        const tokenAddress = tokens[index]
+        const address = tokens[index]
         const amount = amounts[index]
         const user = users[index]
+        resultData.push({address, amount, user })
+    }
+    console.log(resultData)
+    resultData.sort(dynamicSort('user')) // !CHECK
+    for(const data of resultData){
+        const tokenAddress = data.address
+        const amount = data.amount
+        const user = data.user
         const tokenInfo = tokensInfo.find(x => x.address === tokenAddress && x.cid === chainId )
         const decimal = tokenInfo.decimal
-        const part0 = amount.toString().substr(-decimal,decimal)
-        const part1 = amount.toString().substr(0,amount.toString().length-decimal)
         const lng = amount.toString().length
-        const value = `${part1}.${part0}`
-        console.log(`${user} ${tokenInfo.name} ${value} ${lng}`)
+        // const value = `${part1}.${part0}`
+        const value = convertInt2(amount.toString(), decimal)
+        console.log(`${user} ${tokenInfo.name} ${value} ${lng} ${amount.toString()}`)
     }
 }
 main({ owner: process.env.OWNER, verbose: true })
@@ -45,6 +55,20 @@ main({ owner: process.env.OWNER, verbose: true })
 Helper = {
     gasUsed: (tx) => {
         console.log(`Gas Used: ${tx.gasUsed}`)
+    }
+}
+function dynamicSort(property) {
+    var sortOrder = 1;
+    if(property[0] === "-") {
+        sortOrder = -1;
+        property = property.substr(1);
+    }
+    return function (a,b) {
+        /* next line works with strings and numbers, 
+         * and you may want to customize it to your needs
+         */
+        var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
+        return result * sortOrder;
     }
 }
 
@@ -64,11 +88,26 @@ const log = {
   blue: (text) => console.log("\x1b[34m" + text + reset),
   yellow: (text) => console.log("\x1b[33m" + text + reset),
 };
-function intToStr(amount, decimal, nums=2){
-    const decimal = tokenInfo.decimal
-    const part0 = amount.toString().substr(-decimal,decimal)
-    const part1 = amount.toString().substr(0,amount.toString().length-decimal)
-    const lng = amount.toString().length
-    const value = `${part1}.${part0}`
-    
+
+function convertInt(amount, decimal, nums=4){
+    const amountBn = new BN(amount.toString())
+    const decimalBN = new BN(decimal.toString())
+    const divisor = new BN(10).pow(decimalBN)
+
+    const beforeDecimal = amountBn.div(divisor)
+    const afterDecimal  = amountBn.mod(divisor)
+
+    return `${beforeDecimal.toString()}.${afterDecimal.toString().substring(0,nums)}`
 }
+function convertInt2(amount, decimal, nums = 4) {
+    const amountBn = new BN(amount.toString());
+    const decimalBN = new BN(decimal.toString());
+    const divisor = new BN(10).pow(decimalBN);
+  
+    const beforeDecimal = amountBn.div(divisor);
+    const afterDecimal = amountBn.mod(divisor);
+  
+    const afterDecimalStr = afterDecimal.toString(10).padStart(decimal, '0');
+  
+    return `${beforeDecimal.toString()}.${afterDecimalStr.substr(0, nums)}`;
+  }

@@ -110,6 +110,7 @@ interface IERC20 {
         address recipient,
         uint256 amount
     ) external returns (bool);
+    function decimals() external view returns (uint8);
 }
 interface IWETH9 is IERC20 {
     function deposit() external payable;
@@ -131,7 +132,7 @@ contract PayerV3 {
         uint256 additionalAmount;
         uint256 endTimestamp;
         bool completed;
-        bool withdrawn;
+        bool claimed;
     }
     struct ExecuteOrderParams {
         uint256[] orderIds;
@@ -172,10 +173,10 @@ contract PayerV3 {
     mapping(address => mapping(address => uint256)) public swapsOut;
     mapping(address => uint256) public lastUserActionTime;
     Order[] public orders;
-    mapping(address => bool) public acceptableTokens; 
+    mapping(address => bool) public acceptableTokens;
+    mapping(address => bool) public isUsdToken; 
     address[] public acceptableTokensArray;
     address public wethAddress;
-    IERC20 public usdToken;
     uint maxDuration = 90 days;
     uint maxExecutionTime = 1 seconds;//! IN PROD SET 1 hours
     uint fullAccessAfter = 360 days;//! IN PROD CHECK
@@ -290,21 +291,40 @@ contract PayerV3 {
             Order storage order = orders[orderId];
             order.additionalAmount = additionalAmount; // ! ADD _aditionAmount Limit check
             order.completed = true;
+            console.log("::orderId", orderId);
+            console.log(":TOKEN OUT ",  address(order.tokenOut));
             if(swap){
-                //uint256 percentageIn = calculatePercentage(swapsOut[]);
-                uint256 proportionIn = calculateProportion(swapsIn[address(order.tokenIn)][address(order.tokenOut)], order.amountIn);
+                uint256 accuracy = 10 ** order.tokenOut.decimals();
+                if(wethAddress == address(order.tokenOut)){
+                    accuracy = 1e10;// ! CHECK
+                }
+                uint256 proportionIn = calculateProportion(swapsIn[address(order.tokenIn)][address(order.tokenOut)], order.amountIn, accuracy);
+                console.log(":TOTAL SWAP OUT",  swapsOut[address(order.tokenIn)][address(order.tokenOut)]);
+                console.log(":TOTAL SWAP IN",  swapsIn[address(order.tokenIn)][address(order.tokenOut)]);
+                console.log(":ORDER amountIn",  order.amountIn);
+                console.log(":PROPORTION IN",  proportionIn);
                 
-                console.log("::proportionIn");
-                console.log(swapsOut[address(order.tokenIn)][address(order.tokenOut)]);
-                console.log(swapsIn[address(order.tokenIn)][address(order.tokenOut)]);
-                console.log(order.amountIn);
-                console.log(proportionIn);
-
-                order.amountOut = swapsOut[address(order.tokenIn)][address(order.tokenOut)].div(proportionIn).mul(1e10);
+                uint256 swapAmountOut = swapsOut[address(order.tokenIn)][address(order.tokenOut)].div(proportionIn).mul(accuracy);
+                uint256 remainder = 0;                
+                console.log("::SWAP AMOUNT OUT", swapAmountOut);
+                console.log("::IS USD", isUsdToken[address(order.tokenIn)]);
+                if(isUsdToken[address(order.tokenIn)]){
+                    console.log("::PRICE", order.price);
+                    console.log("::CALC", order.amountIn * 10 ** order.tokenOut.decimals() / order.price );
+                    remainder = swapAmountOut - order.amountIn * 10 ** order.tokenOut.decimals() / order.price; 
+                }else{
+                    console.log("::PRICE", order.price);
+                    console.log("::CALC", order.amountIn * order.price / 10 ** order.tokenIn.decimals() );
+                    remainder = swapAmountOut - order.amountIn * order.price / 10 ** order.tokenIn.decimals();
+                }
+                console.log("::REMAINDER", remainder);
+                order.amountOut = swapAmountOut.sub(remainder);
+                balances[order.tokenOut][payerAddress] = balances[order.tokenOut][payerAddress].add(remainder);
             }else{
                 order.tokenOut = order.tokenIn;
                 order.amountOut = order.amountIn;
             }
+            order.completed = true;
     }
     function calculatePercentage(
         uint256 _quantity,
@@ -314,26 +334,35 @@ contract PayerV3 {
     }
      function calculateProportion(
         uint256 _quantity,
-        uint256 _total
+        uint256 _total,
+        uint256 _accuracy
     ) public pure returns (uint256) {
-        return _quantity.mul(1e10).div(_total);
+        return _quantity.mul(_accuracy).div(_total);// ! CHECK 1e10
     }
     function testEncode(ExecuteOrderParams calldata input) public pure returns (bytes memory) {//!DELETE
         return abi.encode(input);
     }
 
     function claimOrder(
-        uint256 _orderId
+        uint256 _orderId,
+        address _usdToken,
+        bool _force
     ) public {
         Order storage order = orders[_orderId];
-        require(!order.withdrawn, "ORDER ALREADY WITHDRAWN" );
-        require(block.timestamp > order.endTimestamp + maxExecutionTime, "ORDER NOT COMPLETED" );
-        if(order.additionalAmount > 0 ){
-            _balanceTransfer(usdToken, payerAddress, order.user, order.additionalAmount);
+        require(!order.claimed, "ORDER ALREADY CLAIMED" );
+        require(order.completed || block.timestamp > order.endTimestamp + maxExecutionTime, "ORDER NOT COMPLETED" );
+        if(!_force){
+            require(isUsdToken[_usdToken], "IS NOT USD TOKEN" );
+            if(order.additionalAmount > 0 && balances[IERC20(_usdToken)][payerAddress] >= order.additionalAmount){
+                _balanceTransfer(IERC20(_usdToken), payerAddress, order.user, order.additionalAmount);
+            }
+        }else{
+            require(msg.sender == order.user, "AVAILABLE ONLY OWNER");
         }
+        
         balances[order.tokenOut][order.user] = balances[order.tokenOut][order.user].add(order.amountOut);
         
-        order.withdrawn = true;
+        order.claimed = true;
         if(msg.sender == order.user){
             _updateUserActionTime();
         }
@@ -367,8 +396,9 @@ contract PayerV3 {
     function _updateUserActionTime() internal {
         lastUserActionTime[msg.sender] = block.timestamp;
     }
-    function editAcceptableToken(address _token, bool _value) public onlyOwners {
+    function editAcceptableToken(address _token, bool _value, bool _isUsd) public onlyOwners {
         acceptableTokens[_token] = _value;
+        isUsdToken[_token] = _isUsd;
         if(_value){
             acceptableTokensArray.push(_token);
         }else{
@@ -376,22 +406,6 @@ contract PayerV3 {
         }
     }
 
-    function getAllUserOrders(address _user) public view returns (Order[] memory) {// !DEBUG ONLY
-        uint256 count = 0;
-        for (uint256 i = 0; i < orders.length; i++) {            
-            if(orders[i].user == _user) count++;
-        }
-        Order[] memory userOrders = new Order[](count);
-        count = 0;
-        for (uint256 i = 0; i < orders.length; i++) {  
-            if(orders[i].user == _user) userOrders[count++]= orders[i];
-        }
-        return userOrders;
-    }
-    function checkZeroBalance() public pure returns (uint256) {// !DEBUG ONLY
-        uint256 count = 0;
-        return 0;
-    }
     function getEthBalance() public view returns (uint256) {
         return address(this).balance;
     }
@@ -419,9 +433,6 @@ contract PayerV3 {
     }
     function setWeth(address _wethAddress) external onlyOwners {
         wethAddress = _wethAddress;
-    }
-    function setUsdToken(IERC20 _usdToken) external onlyOwners {
-        usdToken = _usdToken;
     }
     function setServiceAddress(address _address) external onlyOwners {
         service = _address;
