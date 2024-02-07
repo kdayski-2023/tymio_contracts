@@ -8,9 +8,9 @@ async function main() {
     const user = accounts[2]
     const userAddress = user.address
     log(`user: ${userAddress}`)
-
+    
     const Usdc = await hre.ethers.getContractFactory('ERC20')
-    let usdc = await Usdc.deploy("USDC", "USDC", 6, userAddress)
+    let usdc = await Usdc.deploy("USDC", "USDC", 6)
     usdc = await usdc.deployed()
     const usdcAddress = usdc.address
     tx = await usdc.mint(userAddress, sUsd(7000))
@@ -20,7 +20,7 @@ async function main() {
     log(`usdc: ${usdcAddress}`)
 
     const Usdt = await hre.ethers.getContractFactory('ERC20')
-    let usdt = await Usdt.deploy("USDT", "USDT", 6, userAddress)
+    let usdt = await Usdt.deploy("USDT", "USDT", 6)
     usdt = await usdt.deployed()
     const usdtAddress = usdt.address
     tx = await usdt.mint(userAddress, sUsd(7000))
@@ -30,7 +30,7 @@ async function main() {
     log(`usdt: ${usdtAddress}`)
 
     const Wbtc = await hre.ethers.getContractFactory('ERC20')
-    let wbtc = await Wbtc.deploy("WBTC", "WBTC", 8, userAddress)
+    let wbtc = await Wbtc.deploy("WBTC", "WBTC", 8)
     wbtc = await wbtc.deployed()
     const wbtcAddress = wbtc.address
     tx = await wbtc.mint(userAddress, sBtc(1))
@@ -44,7 +44,8 @@ async function main() {
     weth = await weth.deployed()
     const wethAddress = weth.address
     log(`wethAddress: ${wethAddress}`)
-    
+    await owner.sendTransaction({to: wethAddress, value: sEth(100)});// отправив на weth эфиров, при свапе происходит минт и порой не хватает средств в тестовой среде
+
     const TestSwapRouter = await hre.ethers.getContractFactory('TestSwapRouter')
     let testSwapRouter = await TestSwapRouter.deploy()
     testSwapRouter = await testSwapRouter.deployed()
@@ -94,7 +95,7 @@ async function main() {
 
 
     log(`[user]: USDC -> WETH Вносит на свой баланс в контракт и делает ордер`)
-    // на рынке цена 2100
+    // на рынке цена 2000
     tx = await payer.connect(user).depositAndOrder(usdcAddress, wethAddress, sUsd(3000), sUsd(2100), orderDuration) // buy 
     tx = await tx.wait()
     tx = await payer.connect(user).depositAndOrder(usdcAddress, wethAddress, sUsd(2000), sUsd(2100), orderDuration)
@@ -139,17 +140,21 @@ async function main() {
     tx = await payer.connect(user).claimOrder(4, usdcAddress, false)
     tx = await tx.wait()
 
-    // log(`[user]: Выводит свои средства`)
-    // tx = await payer.connect(user).fullWithdrawal(usdcAddress, await payer.balanceOf(usdcAddress, userAddress))
-    // tx = await tx.wait()
-    // Helper.gasUsed(tx)
+    console.log(cEth(await ethers.provider.getBalance(userAddress)))
+    console.log(cEth(await ethers.provider.getBalance(payerAddress)))
+    console.log(cEth(await ethers.provider.getBalance(wethAddress)))
+    log(`[user]: Выводит свои средства ETH`)
+    tx = await payer.connect(user).fullWithdrawalETH(await payer.balanceOf(wethAddress, userAddress))
+    tx = await tx.wait()
 
+    
     log(`[contract]: Баланс в контракте - сервиса USDC ${cUsd(await payer.balanceOf(usdcAddress, ownerAddress))} `)
     log(`[contract]: Баланс в контракте - сервиса USDT ${cUsd(await payer.balanceOf(usdtAddress, ownerAddress))} `)
     log(`[contract]: Баланс в контракте - сервиса WETH ${cEth(await payer.balanceOf(wethAddress, ownerAddress))} `)
     log(`[contract]: Баланс в контракте - пользователя USDC ${cUsd(await payer.balanceOf(usdcAddress, userAddress))} `)
     log(`[contract]: Баланс в контракте - пользователя USDT ${cUsd(await payer.balanceOf(usdtAddress, userAddress))} `)
     log(`[contract]: Баланс в контракте - пользователя WETH ${cEth(await payer.balanceOf(wethAddress, userAddress))} `)
+    console.log(cEth(await ethers.provider.getBalance(userAddress)))
 }
 main()
     .then(() => process.exit(0))

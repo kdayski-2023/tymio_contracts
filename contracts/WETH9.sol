@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.7.5 <0.9.0;
 import "hardhat/console.sol";
 contract WETH9 {
@@ -15,12 +16,14 @@ contract WETH9 {
 
     constructor() {
     }
+    receive() external payable {}// ! DIFER FROM ORIGINAL
     function deposit() public payable {
         balanceOf[msg.sender] += msg.value;
         emit Deposit(msg.sender, msg.value);
     }
     function withdraw(uint wad) public {
         require(balanceOf[msg.sender] >= wad);
+        console.log("WETH9", balanceOf[msg.sender]);
         balanceOf[msg.sender] -= wad;
         msg.sender.transfer(wad);
         emit Withdrawal(msg.sender, wad);

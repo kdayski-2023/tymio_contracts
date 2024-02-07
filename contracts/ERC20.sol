@@ -169,8 +169,7 @@ contract ERC20 {
     constructor(
         string memory __name,
         string memory __symbol,
-        uint8 __decimals,
-        address owner
+        uint8 __decimals
     ) {
         _name = __name;
         _symbol = __symbol;
