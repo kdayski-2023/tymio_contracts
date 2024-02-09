@@ -1,26 +1,25 @@
-require("@nomicfoundation/hardhat-toolbox");
-require("@nomicfoundation/hardhat-chai-matchers");
-require("@nomiclabs/hardhat-etherscan")
-require("@nomiclabs/hardhat-web3")
-require("@nomiclabs/hardhat-truffle5");
-require('dotenv').config({ path: __dirname + '/.env' })
-require("hardhat-change-network")
+require('@nomicfoundation/hardhat-toolbox');
+require('@nomicfoundation/hardhat-chai-matchers');
+require('@nomiclabs/hardhat-etherscan');
+require('@nomiclabs/hardhat-web3');
+require('@nomiclabs/hardhat-truffle5');
+require('dotenv').config({ path: __dirname + '/.env' });
+require('hardhat-change-network');
 
-const DEPLOYER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY
+const DEPLOYER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY;
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: {
     compilers: [
       {
-        version: "0.7.5",
-        settings: { optimizer: { enabled: true, runs: 200 } }
+        version: '0.7.5',
+        settings: { optimizer: { enabled: true, runs: 200 } },
       },
       {
-        version: "0.4.22",
-        settings: { optimizer: { enabled: true, runs: 200 } }
+        version: '0.4.22',
+        settings: { optimizer: { enabled: true, runs: 200 } },
       },
-      
     ],
   },
   namedAccounts: {
@@ -28,71 +27,74 @@ module.exports = {
     oracleWeezi: 1,
     user: 2,
   },
-  defaultNetwork: "hardhat",
+  defaultNetwork: 'hardhat',
   networks: {
     hardhat: {
       throwOnTransactionFailures: true,
       throwOnCallFailures: true,
       allowUnlimitedContractSize: true,
+      accounts: { count: 100 },
     },
     mainet: {
       network_id: 1,
       url: 'https://mainnet.infura.io/v3/facd693a8e764005bf265d603b34a4f9',
       accounts: [DEPLOYER_PRIVATE_KEY],
       gas: 8e6,
-      gasPrice: 5000000000
+      gasPrice: 5000000000,
     },
     arbitrum: {
       network_id: 42161,
       url: 'https://arbitrum-mainnet.infura.io/v3/dbfff08523c14a52b0280dc383126193',
       accounts: [DEPLOYER_PRIVATE_KEY],
       gas: 8e6,
-      gasPrice: 5000000000
+      gasPrice: 5000000000,
     },
     rpc: {
       network_id: 14,
       url: 'http://localhost:8545',
       gas: 8e6,
-      gasPrice: 5000000000
+      gasPrice: 5000000000,
     },
     twat: {
       network_id: 666777,
       url: 'http://83.220.168.72:15456',
       accounts: [DEPLOYER_PRIVATE_KEY],
       gas: 30e6,
-      gasPrice: 5000000000
+      gasPrice: 5000000000,
     },
     polygon: {
-      url: "https://rpc.ankr.com/polygon",
+      url: 'https://rpc.ankr.com/polygon',
       accounts: [DEPLOYER_PRIVATE_KEY],
       gasPrice: 140000000000,
       gas: 15e6,
     },
     mumbai: {
-      url: "https://rpc-mumbai.maticvigil.com/v1/eeb2fbfce83cd77808f74c7cc9cfc003c90f1df1",
+      url: 'https://rpc-mumbai.maticvigil.com/v1/eeb2fbfce83cd77808f74c7cc9cfc003c90f1df1',
       accounts: [DEPLOYER_PRIVATE_KEY],
       gasPrice: 9000000000,
       gas: 15e6,
     },
     arbitrumOne: {
-      url: "https://rpc-mumbai.maticvigil.com/v1/eeb2fbfce83cd77808f74c7cc9cfc003c90f1df1",
+      url: 'https://rpc-mumbai.maticvigil.com/v1/eeb2fbfce83cd77808f74c7cc9cfc003c90f1df1',
       accounts: [DEPLOYER_PRIVATE_KEY],
       gasPrice: 9000000000,
       gas: 15e6,
     },
     goerli: {
-      url: "https://rpc.ankr.com/eth_goerli",
+      url: 'https://rpc.ankr.com/eth_goerli',
       accounts: [DEPLOYER_PRIVATE_KEY],
       gasPrice: 900000000,
       gas: 4000000,
-      gasMultiplier: 5
+      gasMultiplier: 5,
     },
   },
   ipfs: {
-    url: "https://ipfs.infura.io:5001/",
+    url: 'https://ipfs.infura.io:5001/',
     pinata: {
-      key: process.env.PINATA_KEY || "c3ce0a276d9339578da7",
-      secret: process.env.PINATA_SECRET_KEY || "46b24e90fdc1c494027269aceb75f43ab60108961d1962c13d2cd412e355c4c0",
+      key: process.env.PINATA_KEY || 'c3ce0a276d9339578da7',
+      secret:
+        process.env.PINATA_SECRET_KEY ||
+        '46b24e90fdc1c494027269aceb75f43ab60108961d1962c13d2cd412e355c4c0',
     },
   },
   mocha: {
@@ -100,12 +102,12 @@ module.exports = {
   },
   etherscan: {
     apiKey: {
-      mainnet: "BAFQGJ4M5B94JHBB1HESS4BQGIUJNKXXMB",
-      goerli: "BAFQGJ4M5B94JHBB1HESS4BQGIUJNKXXMB",
-      polygon: "82C8JFDCT4PH1791FHGVYK3INN2S5RJ1YC",
-      polygonMumbai: "82C8JFDCT4PH1791FHGVYK3INN2S5RJ1YC",
-      bsc: "GSYYDG6Z48HQ4ZC6K7XNBU9UTZI21GV38Y",
-      bscTestnet: "GSYYDG6Z48HQ4ZC6K7XNBU9UTZI21GV38Y",
-    }
-  }
+      mainnet: 'BAFQGJ4M5B94JHBB1HESS4BQGIUJNKXXMB',
+      goerli: 'BAFQGJ4M5B94JHBB1HESS4BQGIUJNKXXMB',
+      polygon: '82C8JFDCT4PH1791FHGVYK3INN2S5RJ1YC',
+      polygonMumbai: '82C8JFDCT4PH1791FHGVYK3INN2S5RJ1YC',
+      bsc: 'GSYYDG6Z48HQ4ZC6K7XNBU9UTZI21GV38Y',
+      bscTestnet: 'GSYYDG6Z48HQ4ZC6K7XNBU9UTZI21GV38Y',
+    },
+  },
 };
