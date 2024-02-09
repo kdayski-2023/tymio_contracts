@@ -125,7 +125,7 @@ async function postOrders(payer, expiration, tokensV3) {
         const _tokenAddressIn = tokensV3[tokenInSymbol].address;
         const _tokenAddressOut = tokensV3[targetTokenSymbolOut].address;
         const _amount = sToken(amountIn, tokenInSymbol);
-        const _price = sToken(price, tokenInSymbol);
+        const _price = sToken(price, 'USDC');
         const _duration = orderDuration;
 
         tx = await token.connect(signer).approve(payerAddress, _amount);
@@ -169,9 +169,7 @@ async function executeOrders(payer, expiration, tokensV3) {
       args[1].push(order.order_executed);
       args[2].push(sToken(order.additionalAmount, 'USDC'));
     }
-    console.log(args);
-    args = [[args[0][7]], [args[1][7]], [args[2][7]]];
-    console.log(args);
+    //args = [[args[0][7]], [args[1][7]], [args[2][7]]];
     tx = await payer.executeOrders(args, []);
     tx = await tx.wait();
     log('✔ Все сделки успешно исполнены', 'green', true);

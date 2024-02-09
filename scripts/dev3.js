@@ -1,6 +1,8 @@
 const BN = require('bn.js')
 async function main() {
     let accounts = await ethers.getSigners()
+    console.log(accounts.length)
+    
     const owner = accounts[0]
     const ownerAddress = accounts[0].address
     const service = accounts[1]

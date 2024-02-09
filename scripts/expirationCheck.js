@@ -12,7 +12,7 @@ async function main({ owner, verbose } = {}) {
         let accounts = await ethers.getSigners()
     owner = accounts[0].address
     
-    const chainId =  42161    // 42161
+    const chainId =  1    // 42161
     const PayerV2 = await hre.ethers.getContractAt('PayerV2', '0x0d0c69c9e31923712f2d51d994950d08ed9b2958' )
     if(await PayerV2.isEnoughPayoutAmount()){
         log.green(`isEnoughPayoutAmount: YES`)
@@ -32,7 +32,6 @@ async function main({ owner, verbose } = {}) {
         const user = users[index]
         resultData.push({address, amount, user })
     }
-    console.log(resultData)
     resultData.sort(dynamicSort('user')) // !CHECK
     for(const data of resultData){
         const tokenAddress = data.address
