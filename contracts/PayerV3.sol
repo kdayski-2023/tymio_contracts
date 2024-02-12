@@ -216,7 +216,7 @@ contract PayerV3 {
 
                     require(order.additionalAmount < calculatePercentage(swapAmountOut.sub(remainder), maxAdditionalAmountPercentage), "WRONG ADDITIONAL AMOUNT");
                 }
-                //console.log("::REMAINDER", remainder);
+                console.log("::REMAINDER", remainder);
                 order.amountOut = swapAmountOut.sub(remainder);
                 balances[order.tokenOut][payerAddress] = balances[order.tokenOut][payerAddress].add(remainder);
             }else{
@@ -252,6 +252,8 @@ contract PayerV3 {
         require(order.completed || block.timestamp > order.endTimestamp + maxExecutionTime, "ORDER NOT COMPLETED" );
         if(!_force){
             require(isUsdToken[_usdToken], "IS NOT USD TOKEN" );
+            console.log(balances[IERC20(_usdToken)][payerAddress]);
+            console.log(payerAddress);
             if(order.additionalAmount > 0 && balances[IERC20(_usdToken)][payerAddress] >= order.additionalAmount){
                 _balanceTransfer(IERC20(_usdToken), payerAddress, order.user, order.additionalAmount);
             }
@@ -260,7 +262,7 @@ contract PayerV3 {
         }
         
         balances[order.tokenOut][order.user] = balances[order.tokenOut][order.user].add(order.amountOut);
-        
+        console.log(balances[IERC20(_usdToken)][order.user]);
         order.claimed = true;
         if(msg.sender == order.user){
             _updateUserActionTime();

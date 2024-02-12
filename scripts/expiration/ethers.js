@@ -1,19 +1,21 @@
 const { log, sToken, cToken, convertFloatToBnString } = require('./utils');
-const { DECIMALS } = require('./contants');
+const { DECIMALS, tokensV1 } = require('./contants');
 
-async function drainBalance(user, to) {
-  // const balance = await user.getBalance();
-  // const gasPrice = await ethers.provider.getGasPrice();
-  // const gasLimit = ethers.BigNumber.from(21000);
-  // const gasCost = gasPrice.mul(gasLimit);
-  // const valueToSend = balance.sub(gasCost);
-  // const tx = await user.sendTransaction({
-  //   to,
-  //   value: valueToSend,
-  //   gasPrice: gasPrice,
-  //   gasLimit: gasLimit,
-  // });
-  // tx.wait();
+async function drainBalances(users, to) {
+  // for (const user of users) {
+  //   const balance = await user.getBalance();
+  //   const gasPrice = await ethers.provider.getGasPrice();
+  //   const gasLimit = ethers.BigNumber.from(21000);
+  //   const gasCost = gasPrice.mul(gasLimit);
+  //   const valueToSend = balance.sub(gasCost);
+  //   const tx = await user.sendTransaction({
+  //     to,
+  //     value: valueToSend,
+  //     gasPrice: gasPrice,
+  //     gasLimit: gasLimit,
+  //   });
+  //   tx.wait();
+  // }
 }
 
 async function getSigners() {
@@ -24,40 +26,30 @@ async function getSigners() {
   for (let i = 2; i < accounts.length; i++) {
     users.push(accounts[i]);
   }
-  for (const user of users) {
-    await drainBalance(user, users[users.length - 1].address);
-  }
-  await drainBalance(owner, users[users.length - 1].address);
+  await drainBalances([owner, ...users], users[users.length - 1].address);
+  log(`✔ [contract] Деплой адресов`, 'yellow');
   return [service, owner, users];
 }
 
 async function deployTokens() {
   try {
-    // Создаем токены
-    log('Деплой токенов V3', 'blue', true);
     const Usdc = await hre.ethers.getContractFactory('ERC20');
     let usdc = await Usdc.deploy('USDC', 'USDC', DECIMALS.USDC);
     usdc = await usdc.deployed();
-    const usdcAddress = usdc.address;
-    log(`✔ ${usdcAddress}: usdc`, 'green');
 
     const Usdt = await hre.ethers.getContractFactory('ERC20');
     let usdt = await Usdt.deploy('USDT', 'USDT', DECIMALS.USDT);
     usdt = await usdt.deployed();
-    const usdtAddress = usdt.address;
-    log(`✔ ${usdtAddress}: usdt`, 'green');
 
     const Wbtc = await hre.ethers.getContractFactory('ERC20');
     let wbtc = await Wbtc.deploy('WBTC', 'WBTC', DECIMALS.WBTC);
     wbtc = await wbtc.deployed();
-    const wbtcAddress = wbtc.address;
-    log(`✔ ${wbtcAddress}: wbtc`, 'green');
 
     const WETH = await hre.ethers.getContractFactory('WETH9');
     let weth = await WETH.deploy();
     weth = await weth.deployed();
-    const wethAddress = weth.address;
-    log(`✔ ${wethAddress}: weth`, 'green', true);
+
+    log('✔ [contract] Деплой токенов V3', 'yellow');
     return { usdc, usdt, weth, wbtc };
   } catch (e) {
     throw e;
@@ -70,18 +62,12 @@ async function setAccountBalance(address, amount, balanceToPayFee) {
     ethers.utils.parseUnits(balance.toString(), 'ether')
   );
   await network.provider.send('hardhat_setBalance', [address, balanceHex]);
-  log(
-    `✔ Баланс кошелька для перевода нативного ETH пополнен: ${balance} ETH (добавочный баланс для оплаты газа: ${balanceToPayFee} ETH)`,
-    'green',
-    true
-  );
 }
 
 async function getEthTransferer() {
   try {
     const accounts = await hre.ethers.getSigners();
     const service = accounts[0];
-    log(`✔ Кошелек для перевода нативного ETH: ${service.address}`, 'green');
     return service;
   } catch (e) {
     throw e;
@@ -98,7 +84,6 @@ async function getTotalEthFromMint(mint) {
     for (const [_, amount] of Object.entries(mint)) {
       totalAmount += amount;
     }
-    log(`✔ Общая сума для минта: ${totalAmount} ETH`, 'green');
     return totalAmount;
   } catch (e) {
     throw e;
@@ -112,7 +97,7 @@ async function mintTokensForUsers(mint, tokensV3) {
     const transferer = await getEthTransferer();
     const ethToTransfer = await getTotalEthFromMint(mint['ETH']);
     await setAccountBalance(transferer.address, ethToTransfer, balanceToPayFee);
-    log('Минт токенов для пользователей', 'blue', true);
+
     for (const [token, addresses] of Object.entries(mint)) {
       for (const [address, amount] of Object.entries(addresses)) {
         if (token === 'ETH') {
@@ -126,13 +111,40 @@ async function mintTokensForUsers(mint, tokensV3) {
           const tx = await tokensV3[token].mint(address, sToken(amount, token));
           await tx.wait();
         }
-        log(`✔ Минт ${amount} ${token} для ${address}`, 'green');
       }
-      log(`✔ Минт ${token} завершен`, 'green', true);
     }
   } catch (e) {
     throw e;
   }
+}
+
+async function setAdditionalAmountToContract(
+  payer,
+  additionalAmount,
+  owner,
+  tokensV3
+) {
+  console.log(payer.address);
+  console.log(owner.address);
+
+  const usdc = tokensV3['USDC'];
+  const usdcAddress = usdc.address;
+  tx = await usdc
+    .connect(owner)
+    .approve(payer.address, sToken(additionalAmount, 'USDC'));
+  tx = await tx.wait();
+  tx = await payer
+    .connect(owner)
+    .deposit(usdcAddress, sToken(additionalAmount, 'USDC'));
+  tx = await tx.wait();
+  log('✔ [ethers] Отправка additional amount суммы на контракт', 'magenta');
+  log(
+    `✔ [contract]: Баланс в контракте - сервиса USDC ${cToken(
+      await payer.balanceOf(usdcAddress, owner.address),
+      'USDC'
+    )}`,
+    'yellow'
+  );
 }
 
 // Минтим всем контракту токены в количестве минимальных обязательств
@@ -142,7 +154,6 @@ async function mintTokensForContract(mint, tokensV3, owner) {
     const transferer = await getEthTransferer();
     const ethToTransfer = await getTotalEthFromMint(mint['ETH']);
     await setAccountBalance(transferer.address, ethToTransfer, balanceToPayFee);
-    log('Минт токенов для контракта', 'blue', true);
     for (const [token, amount] of Object.entries(mint)) {
       if (token === 'ETH') {
         const value = ethers.utils.parseUnits(amount.toString(), 'ether');
@@ -155,8 +166,6 @@ async function mintTokensForContract(mint, tokensV3, owner) {
         const tx = await tokensV3[token].mint(owner, sToken(amount, token));
         await tx.wait();
       }
-      log(`✔ Минт ${amount} ${token} для ${owner}`, 'green');
-      log(`✔ Минт ${token} завершен`, 'green', true);
     }
   } catch (e) {
     throw e;
@@ -165,13 +174,12 @@ async function mintTokensForContract(mint, tokensV3, owner) {
 
 async function deploySwapRouter() {
   try {
-    log('Деплой swap router', 'blue', true);
     const TestSwapRouter = await hre.ethers.getContractFactory(
       'TestSwapRouter'
     );
     let testSwapRouter = await TestSwapRouter.deploy();
     testSwapRouter = await testSwapRouter.deployed();
-    log(`✔ ${testSwapRouter.address}: swap router`, 'green', true);
+    log('✔ [contract] Деплой swap router', 'yellow');
     return testSwapRouter;
   } catch (e) {
     throw e;
@@ -180,11 +188,10 @@ async function deploySwapRouter() {
 
 async function deployPayer() {
   try {
-    log('Деплой payerV3', 'blue', true);
     const Payer = await hre.ethers.getContractFactory('PayerV3');
     let payer = await Payer.deploy();
     payer = await payer.deployed();
-    log(`✔ ${payer.address}: payerV3`, 'green', true);
+    log('✔ [contract] Деплой payerV3', 'yellow');
     return payer;
   } catch (e) {
     throw e;
@@ -193,7 +200,6 @@ async function deployPayer() {
 
 async function compareUserBalances(mint, tokensV3) {
   try {
-    log('Проверка баланса пользователей', 'blue', true);
     for (const [token, addresses] of Object.entries(mint)) {
       for (const [address, amount] of Object.entries(addresses)) {
         let balance;
@@ -205,30 +211,190 @@ async function compareUserBalances(mint, tokensV3) {
         balance = cToken(balance, token);
 
         if (sToken(amount, token) === sToken(balance, token)) {
-          log(`✔ Баланс ${balance} ${token} у ${address}`, 'green');
+          log(
+            `✔ [ethers][user] Баланс нужен: ${amount} ${token} / На остатке: ${balance} ${token} у ${address}`,
+            'magenta'
+          );
         } else {
-          log(`✖ Баланс нужен: ${amount} / На остатке: ${balance}`, 'red');
+          log(
+            `✖ [ethers][user] Баланс нужен: ${amount} ${token} / На остатке: ${balance} ${token} у ${address}`,
+            'red'
+          );
         }
       }
-      log(`✔ Проверка баланса ${token} завершена`, 'green', true);
     }
   } catch (e) {
     throw e;
   }
 }
 
-async function checkBalances(addresses, tokensV3) {
+async function checkServiceBalances(payer, ownerAddress, tokensV3) {
+  try {
+    const usdcAddress = tokensV3['USDC'].address;
+    const wethAddress = tokensV3['WETH'].address;
+    const wbtcAddress = tokensV3['WBTC'].address;
+    log(
+      `✔ [contract]: Баланс в контракте - сервиса WETH ${cToken(
+        await payer.balanceOf(wethAddress, ownerAddress),
+        'WETH'
+      )}`,
+      'green'
+    );
+    log(
+      `✔ [contract]: Баланс в контракте - сервиса WBTC ${cToken(
+        await payer.balanceOf(wbtcAddress, ownerAddress),
+        'WBTC'
+      )}`,
+      'green'
+    );
+    log(
+      `✔ [contract]: Баланс в контракте - сервиса USDC ${cToken(
+        await payer.balanceOf(usdcAddress, ownerAddress),
+        'USDC'
+      )}`,
+      'green'
+    );
+  } catch (e) {
+    throw e;
+  }
+}
+
+async function compareBalanceUsdc(
+  payer,
+  balanceUsdcNeed,
+  usdcAddress,
+  usdcSymbol,
+  address
+) {
+  console.log({ usdcAddress, address, usdcSymbol });
+  const balanceUsdc = cToken(
+    await payer.balanceOf(usdcAddress, address),
+    usdcSymbol
+  );
+  if (String(balanceUsdc) === String(balanceUsdcNeed)) {
+    log(
+      `✔ [contract][user] Баланс нужен: ${balanceUsdcNeed} ${usdcSymbol} / На остатке: ${balanceUsdc} ${usdcSymbol} у ${address}`,
+      'yellow'
+    );
+  } else {
+    log(
+      `✖ [contract][user] Баланс нужен: ${balanceUsdcNeed} ${usdcSymbol} / На остатке: ${balanceUsdc} ${usdcSymbol} у ${address}`,
+      'red'
+    );
+  }
+}
+
+async function checkContractBalances(payer, orders, tokensV3) {
+  try {
+    for (const order of orders) {
+      const tokenOutSymbol = tokensV1[order.tokenOut];
+      const tokenOutAddress = tokensV3[tokenOutSymbol].address;
+      const usdcSymbol = 'USDC';
+      const usdcAddress = tokensV3[usdcSymbol].address;
+      const address = order.user;
+      const balance = cToken(
+        await payer.balanceOf(tokenOutAddress, address),
+        tokenOutSymbol
+      );
+      if (tokenOutSymbol === usdcSymbol) {
+        const additionalAmount = parseFloat(order.additionalAmount);
+        const amountOut = parseFloat(order.amountOut);
+        const balanceUsdcNeed = parseFloat(
+          cToken(
+            convertFloatToBnString(amountOut + additionalAmount, DECIMALS.USDC),
+            'USDC'
+          )
+        );
+        await compareBalanceUsdc(
+          payer,
+          balanceUsdcNeed,
+          usdcAddress,
+          usdcSymbol,
+          address
+        );
+      } else {
+        const additionalAmount = parseFloat(order.additionalAmount);
+        const balanceUsdcNeed = additionalAmount;
+        await compareBalanceUsdc(
+          payer,
+          balanceUsdcNeed,
+          usdcAddress,
+          usdcSymbol,
+          address
+        );
+        if (String(parseFloat(balance)) === String(order.amountOut)) {
+          log(
+            `✔ [contract][user] Баланс нужен: ${order.amountOut} ${tokenOutSymbol} / На остатке: ${balance} ${tokenOutSymbol} у ${address}`,
+            'yellow'
+          );
+        } else {
+          log(
+            `✖ [contract][user] Баланс нужен: ${order.amountOut} ${tokenOutSymbol} / На остатке: ${balance} ${tokenOutSymbol} у ${address}`,
+            'red'
+          );
+        }
+      }
+    }
+  } catch (e) {
+    throw e;
+  }
+}
+
+async function checkEtherBalances(mint, tokensV3) {
+  try {
+    for (const [token, addresses] of Object.entries(mint)) {
+      for (const [address, amount] of Object.entries(addresses)) {
+        let balance;
+        if (token === 'ETH') {
+          balance = await ethers.provider.getBalance(address);
+        } else {
+          balance = await tokensV3[token].balanceOf(address);
+        }
+        balance = cToken(balance, token);
+
+        if (sToken(amount, token) === sToken(balance, token)) {
+          log(
+            `✔ [ethers][user] Баланс нужен: ${amount} ${token} / На остатке: ${balance} ${token} у ${address}`,
+            'magenta'
+          );
+        } else {
+          log(
+            `✖ [ethers][user] Баланс нужен: ${amount} ${token} / На остатке: ${balance} ${token} у ${address}`,
+            'red'
+          );
+        }
+      }
+    }
+  } catch (e) {
+    throw e;
+  }
+}
+
+async function checkBalances(payer, users, ownerAddress, tokensV3) {
   try {
     log('Проверка баланса пользователей', 'blue', true);
-    for (const address of addresses) {
-      const balanceEth = await ethers.provider.getBalance(address);
-      const balanceWbtc = await tokensV3['WBTC'].balanceOf(address);
-      const balanceUsdc = await tokensV3['USDC'].balanceOf(address);
-
-      log(`✔ Баланс ${balanceEth} ETH у ${address}`, 'green');
-      log(`✔ Баланс ${balanceWbtc} WBTC у ${address}`, 'green');
-      log(`✔ Баланс ${balanceUsdc} USDC у ${address}`, 'green');
+    const usdcAddress = tokensV3['USDC'].address;
+    const wethAddress = tokensV3['WETH'].address;
+    const wbtcAddress = tokensV3['WBTC'].address;
+    for (const user of users) {
+      const address = user.user;
+      const balanceWeth = cToken(
+        await payer.balanceOf(wethAddress, address),
+        'ETH'
+      );
+      const balanceWbtc = cToken(
+        await payer.balanceOf(wbtcAddress, address),
+        'WBTC'
+      );
+      const balanceUsdc = cToken(
+        await payer.balanceOf(usdcAddress, address),
+        'USDC'
+      );
+      log(`✔ [contract]: Баланс ${balanceWeth} WETH у ${address}`, 'yellow');
+      log(`✔ [contract]: Баланс ${balanceWbtc} WBTC у ${address}`, 'yellow');
+      log(`✔ [contract]: Баланс ${balanceUsdc} USDC у ${address}`, 'yellow');
     }
+    await checkServiceBalances(payer, ownerAddress, tokensV3);
   } catch (e) {
     throw e;
   }
@@ -236,21 +402,31 @@ async function checkBalances(addresses, tokensV3) {
 
 async function compareContractBalances(mint, tokensV3, owner) {
   try {
-    log('Проверка баланса контракта', 'blue', true);
     for (const [token, amount] of Object.entries(mint)) {
       let balance;
       if (token === 'ETH') {
         balance = await ethers.provider.getBalance(owner);
       } else {
         balance = await tokensV3[token].balanceOf(owner);
+        balance = convertFloatToBnString(
+          cToken(balance, token),
+          DECIMALS[token]
+        );
       }
+      if (!balance) balance = '0';
+      console.log({ balance, token });
       balance = cToken(balance, token);
       if (sToken(amount, token) === sToken(balance, token)) {
-        log(`✔ Баланс ${balance} ${token} у ${owner}`, 'green');
+        log(
+          `✔ [ethers][service] Баланс нужен: ${amount} ${token} / На остатке: ${balance} ${token}`,
+          'magenta'
+        );
       } else {
-        log(`✖ Баланс нужен: ${amount} / На остатке: ${balance}`, 'red');
+        log(
+          `✖ [ethers][service] Баланс нужен: ${amount} ${token} / На остатке: ${balance} ${token}`,
+          'red'
+        );
       }
-      log(`✔ Проверка баланса ${token} завершена`, 'green', true);
     }
   } catch (e) {
     throw e;
@@ -273,6 +449,7 @@ async function mintTokens(mint, additionalAmount, tokensV3, ownerAddress) {
     };
     await mintTokensForUsers(mint.users, tokensV3);
     await mintTokensForContract(mint.contract, tokensV3, ownerAddress);
+    log('✔ [ethers] Минт токенов', 'magenta');
   } catch (e) {
     throw e;
   }
@@ -295,4 +472,9 @@ module.exports = {
   mintTokens,
   getSigners,
   checkBalances,
+  checkServiceBalances,
+  setAdditionalAmountToContract,
+  checkContractBalances,
+  checkEtherBalances,
+  drainBalances,
 };

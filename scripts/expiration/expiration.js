@@ -15,19 +15,7 @@ function getAdditionalAmount(expiration) {
       // Аккумулируем комиссию
       additionalAmountSum += Number(order.additionalAmount);
     }
-    log('✔ Обязательства на выплату контрактом комиссии:', 'green');
-    log(
-      {
-        USDC: parseFloat(
-          cToken(
-            convertFloatToBnString(additionalAmountSum, DECIMALS.USDC),
-            'USDC'
-          )
-        ),
-      },
-      false,
-      true
-    );
+    log('✔ [expiration] Обязательства на выплату контрактом комиссии', 'green');
     return additionalAmountSum;
   } catch (e) {
     throw e;
@@ -58,10 +46,16 @@ function getMint(expiration) {
       const tokenOut = tokensV1[order.tokenOut];
       mintForContract[tokenOut] = mintForContract[tokenOut] + order.amountOut;
     }
-    log('✔ Обязательства взноса пользователей:', 'green');
-    log(mintForUsers, false);
-    log('✔ Минимальные обязательства на выплату контрактом:', 'green');
-    log(mintForContract, false, true);
+    log(
+      `✔ [expiration] Обязательства взноса пользователями сформированы`,
+      'green'
+    );
+    log(mintForUsers);
+    log(
+      `✔ [expiration] Минимальные обязательства на выплату контрактом сформированы`,
+      'green'
+    );
+    log(mintForContract);
     return { contract: mintForContract, users: mintForUsers };
   } catch (e) {
     throw e;
@@ -70,17 +64,14 @@ function getMint(expiration) {
 
 async function replaceUserAddresses(expiration, users) {
   try {
-    log(
-      'Замена реальных адресов пользователей на сгенерированные',
-      'blue',
-      true
-    );
     for (const [index, order] of expiration.orders.entries()) {
-      log(`✔ Адрес ${order.user} заменен на ${users[index].address}`, 'green');
       order.user = users[index].address;
       order.signer = users[index];
     }
-    log('✔ Все адреса заменены', 'green', true);
+    log(
+      '✔ [modify] Замена реальных адресов пользователей на сгенерированны',
+      'gray'
+    );
     return expiration;
   } catch (e) {
     throw e;
@@ -89,7 +80,6 @@ async function replaceUserAddresses(expiration, users) {
 
 async function postOrders(payer, expiration, tokensV3) {
   try {
-    log('Создание сделок', 'blue', true);
     const expirationDuration = 1;
     for (const order of expiration.orders) {
       const orderDuration = 1;
@@ -109,6 +99,14 @@ async function postOrders(payer, expiration, tokensV3) {
         const _duration = orderDuration;
         const value = sToken(amountIn, 'ETH');
 
+        console.log([
+          _tokenAddressIn,
+          _tokenAddressOut,
+          _amount,
+          _price,
+          _duration,
+          { value },
+        ]);
         tx = await payer
           .connect(signer)
           .depositEthAndOrder(
@@ -147,11 +145,11 @@ async function postOrders(payer, expiration, tokensV3) {
         }
       }
       log(
-        `✔ Запись сделки ${order.contract_id} на ${direction} ${amountIn} ${tokenInSymbol} за ${price}`,
-        'green'
+        `✔ [contract] Запись сделки ${order.contract_id} на ${direction} ${amountIn} ${tokenInSymbol} за ${price}`,
+        'yellow'
       );
     }
-    log('✔ Все сделки успешно записаны', 'green', true);
+    log(`✔ [contract] Запись сделок`, 'yellow');
     log(`Ждем ${expirationDuration} сек`, 'blue');
     await wait(expirationDuration);
     return expiration;
@@ -162,17 +160,17 @@ async function postOrders(payer, expiration, tokensV3) {
 
 async function executeOrders(payer, expiration, tokensV3) {
   try {
-    log('Исполнение сделок', 'blue', true);
     let args = [[], [], []];
     for (const order of expiration.orders) {
       args[0].push(order.contract_id);
       args[1].push(order.order_executed);
       args[2].push(sToken(order.additionalAmount, 'USDC'));
     }
+    console.log(args);
     //args = [[args[0][7]], [args[1][7]], [args[2][7]]];
     tx = await payer.executeOrders(args, []);
     tx = await tx.wait();
-    log('✔ Все сделки успешно исполнены', 'green', true);
+    log('✔ [contract] Сделки исполнены', 'yellow');
   } catch (e) {
     throw e;
   }
@@ -180,26 +178,76 @@ async function executeOrders(payer, expiration, tokensV3) {
 
 async function claimOrders(payer, expiration, tokensV3) {
   try {
-    // log('Клейм сделок', 'blue', true);
-    // for (const order of expiration.orders) {
-    //   const id = order.contract_id;
-    //   const user = order.user;
-    //   tx = await payer.connect(user).claimOrder(id, tokensV3['USDC'], false);
-    //   tx = await tx.wait();
-    //   log(`✔ Сделка ${id} заклеймина пользователем`, 'green', true);
-    // }
-    // log('✔ Все сделки успешно заклеймины', 'green', true);
+    for (const order of expiration.orders) {
+      const id = order.contract_id;
+      const user = order.signer;
+      const claimTokenAddress = tokensV3['USDC'].address;
+      tx = await payer.orders(id);
+      console.log(tx);
+      log([id, claimTokenAddress, false]);
+      tx = await payer.connect(user).claimOrder(id, claimTokenAddress, false);
+      tx = await tx.wait();
+    }
+    log(`✔ [contract] Клейм сделок`, 'yellow');
   } catch (e) {
     throw e;
   }
 }
 
-// console.log(cEth(await ethers.provider.getBalance(userAddress)))
-// console.log(cEth(await ethers.provider.getBalance(payerAddress)))
-// console.log(cEth(await ethers.provider.getBalance(wethAddress)))
-// log(`[user]: Выводит свои средства ETH`)
-// tx = await payer.connect(user).fullWithdrawalETH(await payer.balanceOf(wethAddress, userAddress))
-// tx = await tx.wait()
+async function fillWithdrawal(payer, users, tokensV3) {
+  try {
+    const usdcAddress = tokensV3['USDC'].address;
+    const wethAddress = tokensV3['WETH'].address;
+    const wbtcAddress = tokensV3['WBTC'].address;
+    for (const user of users) {
+      const signer = user.signer;
+      const address = user.user;
+      const balanceWeth = await payer.balanceOf(wethAddress, address);
+      const balanceWbtc = await payer.balanceOf(wbtcAddress, address);
+      const balanceUsdc = await payer.balanceOf(usdcAddress, address);
+      if (cToken(balanceWeth, 'WETH') > 0) {
+        tx = await payer.connect(signer).fullWithdrawalETH(balanceWeth);
+        tx = await tx.wait();
+        log(
+          `✔ [contract]: Вывод ${cToken(
+            balanceWeth,
+            'WETH'
+          )} ETH от ${address}`,
+          'green'
+        );
+      }
+      if (cToken(balanceWbtc, 'WBTC') > 0) {
+        tx = await payer
+          .connect(signer)
+          .fullWithdrawal(wbtcAddress, balanceWbtc);
+        tx = await tx.wait();
+        log(
+          `✔ [contract]: Вывод ${cToken(
+            balanceWbtc,
+            'WBTC'
+          )} WBTC от ${address}`,
+          'green'
+        );
+      }
+      if (cToken(balanceUsdc, 'USDC') > 0) {
+        tx = await payer
+          .connect(signer)
+          .fullWithdrawal(usdcAddress, balanceUsdc);
+        tx = await tx.wait();
+        log(
+          `✔ [contract]: Вывод ${cToken(
+            balanceUsdc,
+            'USDC'
+          )} USDC от ${address}`,
+          'green'
+        );
+      }
+    }
+    log('✔ [contract] Средства выведены', 'yellow');
+  } catch (e) {
+    throw e;
+  }
+}
 
 // log(`[contract]: Баланс в контракте - сервиса USDC ${cUsd(await payer.balanceOf(usdcAddress, ownerAddress))} `)
 // log(`[contract]: Баланс в контракте - сервиса USDT ${cUsd(await payer.balanceOf(usdtAddress, ownerAddress))} `)
@@ -216,4 +264,5 @@ module.exports = {
   replaceUserAddresses,
   executeOrders,
   claimOrders,
+  fillWithdrawal,
 };
