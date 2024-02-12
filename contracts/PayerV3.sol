@@ -174,7 +174,7 @@ contract PayerV3 {
                     console.log("::AMOUNT OUT");
                     console.log(amountOut);
                     swapsOut[acceptableTokensArray[i]][acceptableTokensArray[j]] = amountOut;
-                    //swapsIn[acceptableTokensArray[i]][acceptableTokensArray[j]] = 0; //! CHECK IT
+                    
                     swapsCount++;// TODO
                 }
             }
@@ -183,6 +183,11 @@ contract PayerV3 {
 
         for (uint256 i = 0; i < params.orderIds.length; i++) {       
              _executeOrder(params.orderIds[i], params.swap[i],params.additionalAmount[i]);            
+        }
+        for (uint256 i = 0; i < acceptableTokensArray.length; i++) {
+            for (uint256 j = 0; j < acceptableTokensArray.length; j++) {
+                swapsIn[acceptableTokensArray[i]][acceptableTokensArray[j]] = 0; //! CHECK IT
+            }
         }
     }
     function _executeOrder(uint256 orderId, bool swap, uint256 additionalAmount) private {
