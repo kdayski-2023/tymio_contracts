@@ -57,7 +57,7 @@ async function main() {
   let errors = 0;
   let expirationId = 0;
   console.log(expirations.length);
-  for (const item of [expirations[26], expirations[27]]) {
+  for (const item of [expirations[40]]) {
     expirationId += 1;
     try {
       log(`Экспирация от ${new Date(item.expirationDate)}`, 'blue', true);

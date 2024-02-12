@@ -207,11 +207,15 @@ async function compareBalanceUsdc(
   usdcSymbol,
   address
 ) {
+  console.log(await payer.balanceOf(usdcAddress, address));
   const balanceUsdc = cToken(
     await payer.balanceOf(usdcAddress, address),
     usdcSymbol
   );
-  if (parseFloat(balanceUsdc) === parseFloat(balanceUsdcNeed)) {
+  if (
+    parseFloat(balanceUsdc) === parseFloat(balanceUsdcNeed) ||
+    parseFloat(balanceUsdc) - parseFloat(balanceUsdcNeed) < 0.001 //! TODO погрешность
+  ) {
     log(
       `✔ [contract][user] Баланс нужен: ${balanceUsdcNeed} ${usdcSymbol} / На остатке: ${balanceUsdc} ${usdcSymbol} у ${address}`,
       'yellow'

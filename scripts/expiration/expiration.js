@@ -71,6 +71,8 @@ function getAmountToDeposit(expiration) {
 
 async function replaceUserAddresses(expiration, users) {
   try {
+    //! TODO по умному реплейснуть, чтобы сохранялись одинаковые адреса на разных сделках того же пользователя
+    // Можно попробовать через объект в качестве ключей адреса
     for (const [index, order] of expiration.orders.entries()) {
       order.user = users[index].address;
       order.signer = users[index];
