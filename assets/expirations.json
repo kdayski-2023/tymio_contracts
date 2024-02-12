@@ -71,14 +71,14 @@
 				"user": "0xed2290271da82ece518362f2cdabbf5d1387a946",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 2400,
-				"tokenOut": "0x0000000000000000000000000000000000000000",
-				"amountOut": 2,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+				"amountOut": 2400,
 				"price": 1200,
 				"additionalAmount": "10.4",
 				"endTimestamp": "2022-10-07T00:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": true
+				"order_executed": false
 			}
 		]
 	},
@@ -128,13 +128,14 @@
 				"user": "0xf71d092d0d130a6cd385dc26df5b8c2a31062be0",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1300,
 				"additionalAmount": "5.902805",
 				"endTimestamp": "2022-10-20T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -184,37 +185,40 @@
 				"user": "0xed2290271da82ece518362f2cdabbf5d1387a946",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1300,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1300,
 				"price": 1300,
 				"additionalAmount": "27.709408",
 				"endTimestamp": "2022-11-04T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x2262d79e496a29417dd11198be3e6bd25e1fa6ce",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 3,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 3,
 				"price": 1700,
 				"additionalAmount": "64.871414",
 				"endTimestamp": "2022-11-04T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x2262d79e496a29417dd11198be3e6bd25e1fa6ce",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 7,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 7,
 				"price": 1600,
 				"additionalAmount": "164.556944",
 				"endTimestamp": "2022-11-04T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -229,13 +233,14 @@
 				"user": "0xed2290271da82ece518362f2cdabbf5d1387a946",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1550,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1550,
 				"price": 1550,
 				"additionalAmount": "4.982228",
 				"endTimestamp": "2022-11-11T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -250,13 +255,14 @@
 				"user": "0x29fd82d154c4002d1da5dbb1d3b7bb551d6cf4b9",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 8400,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 8400,
 				"price": 1200,
 				"additionalAmount": "63.392574",
 				"endTimestamp": "2022-11-17T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -271,13 +277,14 @@
 				"user": "0x29fd82d154c4002d1da5dbb1d3b7bb551d6cf4b9",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 8400,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 8400,
 				"price": 1200,
 				"additionalAmount": "59.362519",
 				"endTimestamp": "2022-11-18T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -292,13 +299,14 @@
 				"user": "0x29fd82d154c4002d1da5dbb1d3b7bb551d6cf4b9",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 8400,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 8400,
 				"price": 1200,
 				"additionalAmount": "56.370188",
 				"endTimestamp": "2022-11-19T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -313,13 +321,14 @@
 				"user": "0xf34d82afae8b288d0e505d432dfe9909c2f67e43",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1250,
 				"additionalAmount": "1.221717",
 				"endTimestamp": "2022-11-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -334,13 +343,14 @@
 				"user": "0xed2290271da82ece518362f2cdabbf5d1387a946",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 3600,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 3600,
 				"price": 1200,
 				"additionalAmount": "31.525462",
 				"endTimestamp": "2022-11-25T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -355,13 +365,14 @@
 				"user": "0x1fdc1c823c156917f6166efc921a892d627c22a1",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1200,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1200,
 				"price": 1200,
 				"additionalAmount": "10.992345",
 				"endTimestamp": "2022-11-30T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -376,25 +387,27 @@
 				"user": "0x895e9e4d3009fe5d6c7502a4b573ef6672d928a2",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1150,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1150,
 				"price": 1150,
 				"additionalAmount": "16.395042",
 				"endTimestamp": "2022-12-16T09:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x1fdc1c823c156917f6166efc921a892d627c22a1",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1150,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1150,
 				"price": 1150,
 				"additionalAmount": "7.024359",
 				"endTimestamp": "2022-12-16T09:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -409,13 +422,14 @@
 				"user": "0x1fdc1c823c156917f6166efc921a892d627c22a1",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1100,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1100,
 				"price": 1100,
 				"additionalAmount": "8.616538",
 				"endTimestamp": "2022-12-19T11:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -430,37 +444,40 @@
 				"user": "0x135d413a5b89c57f5cdc7fa5fa56f86bafab6e43",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1400,
 				"additionalAmount": "29.489232",
 				"endTimestamp": "2022-12-23T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x1fdc1c823c156917f6166efc921a892d627c22a1",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1150,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1150,
 				"price": 1150,
 				"additionalAmount": "12.02166",
 				"endTimestamp": "2022-12-23T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xaa510d1f397cf74da7ff74c5e21e8798725ba4e1",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 3300,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 3300,
 				"price": 1100,
 				"additionalAmount": "62.055157",
 				"endTimestamp": "2022-12-23T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -475,13 +492,14 @@
 				"user": "0xace17cf9b49439d9c5fa3677fef9b90d71320846",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 5750,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 5750,
 				"price": 1150,
 				"additionalAmount": "116",
 				"endTimestamp": "2022-12-30T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -496,13 +514,14 @@
 				"user": "0x1fdc1c823c156917f6166efc921a892d627c22a1",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1200,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1200,
 				"price": 1200,
 				"additionalAmount": "16.210838",
 				"endTimestamp": "2022-12-30T09:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -517,25 +536,27 @@
 				"user": "0x1fdc1c823c156917f6166efc921a892d627c22a1",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1150,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1150,
 				"price": 1150,
 				"additionalAmount": "8.31173",
 				"endTimestamp": "2023-01-06T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x1fdc1c823c156917f6166efc921a892d627c22a1",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1200,
 				"additionalAmount": "15.018191",
 				"endTimestamp": "2023-01-06T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -550,49 +571,53 @@
 				"user": "0x012b4c524e6aa0dce1ba35f52da728b780385081",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1400,
 				"additionalAmount": "3.507195",
 				"endTimestamp": "2023-01-13T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x1fdc1c823c156917f6166efc921a892d627c22a1",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 2400,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 2400,
 				"price": 1200,
 				"additionalAmount": "20.02357",
 				"endTimestamp": "2023-01-13T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xaa510d1f397cf74da7ff74c5e21e8798725ba4e1",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 3000,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 3000,
 				"price": 1000,
 				"additionalAmount": "21.277556",
 				"endTimestamp": "2023-01-13T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x012b4c524e6aa0dce1ba35f52da728b780385081",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1300,
 				"additionalAmount": "10.9613",
 				"endTimestamp": "2023-01-13T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -607,73 +632,79 @@
 				"user": "0x2262d79e496a29417dd11198be3e6bd25e1fa6ce",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 11,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 11,
 				"price": 1650,
 				"additionalAmount": "110.820402",
 				"endTimestamp": "2023-01-20T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x1fdc1c823c156917f6166efc921a892d627c22a1",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1350,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1350,
 				"price": 1350,
 				"additionalAmount": "12.817804",
 				"endTimestamp": "2023-01-20T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xdd6192b1993c3c5250afdf6207ec89379fdf8916",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1600,
 				"additionalAmount": "3.433919",
 				"endTimestamp": "2023-01-20T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x271bfa8ae55d7d76ecf258d4858880f6034df573",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1600,
 				"additionalAmount": "16.752725",
 				"endTimestamp": "2023-01-20T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xdd6192b1993c3c5250afdf6207ec89379fdf8916",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1500,
 				"additionalAmount": "2.752134",
 				"endTimestamp": "2023-01-20T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x012b4c524e6aa0dce1ba35f52da728b780385081",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1350,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1350,
 				"price": 1350,
 				"additionalAmount": "11.8713",
 				"endTimestamp": "2023-01-20T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -688,25 +719,27 @@
 				"user": "0x012b4c524e6aa0dce1ba35f52da728b780385081",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1600,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1600,
 				"price": 1600,
 				"additionalAmount": "22.247998",
 				"endTimestamp": "2023-01-27T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x2262d79e496a29417dd11198be3e6bd25e1fa6ce",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 11,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 11,
 				"price": 1650,
 				"additionalAmount": "244.996752",
 				"endTimestamp": "2023-01-27T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -721,121 +754,131 @@
 				"user": "0x1fdc1c823c156917f6166efc921a892d627c22a1",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1450,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1450,
 				"price": 1450,
 				"additionalAmount": "9.733367",
 				"endTimestamp": "2023-02-03T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xace17cf9b49439d9c5fa3677fef9b90d71320846",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 2,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 2,
 				"price": 1650,
 				"additionalAmount": "26.621447",
 				"endTimestamp": "2023-02-03T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xace17cf9b49439d9c5fa3677fef9b90d71320846",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 5,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 5,
 				"price": 1550,
 				"additionalAmount": "103.399065",
 				"endTimestamp": "2023-02-03T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x2262d79e496a29417dd11198be3e6bd25e1fa6ce",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 11,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 11,
 				"price": 1650,
 				"additionalAmount": "176.228206",
 				"endTimestamp": "2023-02-03T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x271bfa8ae55d7d76ecf258d4858880f6034df573",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1600,
 				"additionalAmount": "21.118537",
 				"endTimestamp": "2023-02-03T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x012b4c524e6aa0dce1ba35f52da728b780385081",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1350,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1350,
 				"price": 1350,
 				"additionalAmount": "19.418867",
 				"endTimestamp": "2023-02-03T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xace17cf9b49439d9c5fa3677fef9b90d71320846",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 7250,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 7250,
 				"price": 1450,
 				"additionalAmount": "137.7355",
 				"endTimestamp": "2023-02-03T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x5a8fe73e0a8ce06d008a227063ca8542bb5b7bd8",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 2,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 2,
 				"price": 1600,
 				"additionalAmount": "29.53608",
 				"endTimestamp": "2023-02-03T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x012b4c524e6aa0dce1ba35f52da728b780385081",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1600,
 				"additionalAmount": "28.235665",
 				"endTimestamp": "2023-02-03T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xdd6192b1993c3c5250afdf6207ec89379fdf8916",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1400,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1400,
 				"price": 1400,
 				"additionalAmount": "7.794136",
 				"endTimestamp": "2023-02-03T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -850,85 +893,92 @@
 				"user": "0xdd6192b1993c3c5250afdf6207ec89379fdf8916",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1450,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1450,
 				"price": 1450,
 				"additionalAmount": "3.446351",
 				"endTimestamp": "2023-02-10T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x271bfa8ae55d7d76ecf258d4858880f6034df573",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1600,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1600,
 				"price": 1600,
 				"additionalAmount": "23.610055",
 				"endTimestamp": "2023-02-10T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x2262d79e496a29417dd11198be3e6bd25e1fa6ce",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 11,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 11,
 				"price": 1650,
 				"additionalAmount": "251.6052",
 				"endTimestamp": "2023-02-10T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x012b4c524e6aa0dce1ba35f52da728b780385081",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1450,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1450,
 				"price": 1450,
 				"additionalAmount": "33.557531",
 				"endTimestamp": "2023-02-10T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xed2290271da82ece518362f2cdabbf5d1387a946",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1600,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1600,
 				"price": 1600,
 				"additionalAmount": "17.744849",
 				"endTimestamp": "2023-02-10T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xace17cf9b49439d9c5fa3677fef9b90d71320846",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 7500,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 7500,
 				"price": 1500,
 				"additionalAmount": "43.068374",
 				"endTimestamp": "2023-02-10T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xace17cf9b49439d9c5fa3677fef9b90d71320846",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 7750,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 7750,
 				"price": 1550,
 				"additionalAmount": "74.679605",
 				"endTimestamp": "2023-02-10T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -943,121 +993,131 @@
 				"user": "0x4d0e2ffbeb8232dd04645dcce3b642317794e4a1",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1800,
 				"additionalAmount": "21.642687",
 				"endTimestamp": "2023-02-17T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x9de14ec77e1292f2e4301a97d3b68f8242254ade",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 26350,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 26350,
 				"price": 1550,
 				"additionalAmount": "393.40448",
 				"endTimestamp": "2023-02-17T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xea228f3bf93683bf7e95d62c148e9ad24cb98d59",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1600,
 				"additionalAmount": "12.951623",
 				"endTimestamp": "2023-02-17T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xdd6192b1993c3c5250afdf6207ec89379fdf8916",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1450,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1450,
 				"price": 1450,
 				"additionalAmount": "10.85504",
 				"endTimestamp": "2023-02-17T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x1ffce952fef74066512d9c023dc6f794b9ff4999",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1650,
 				"additionalAmount": "33.274542",
 				"endTimestamp": "2023-02-17T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x6f1fa61717fcdc26e38f8228dd0ef13a12b9c054",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1550,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1550,
 				"price": 1550,
 				"additionalAmount": "17.152274",
 				"endTimestamp": "2023-02-17T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x1cc571b33d58260fae07f691c2f94a7bcf68410b",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1750,
 				"additionalAmount": "10.281032",
 				"endTimestamp": "2023-02-17T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x1ffce952fef74066512d9c023dc6f794b9ff4999",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1600,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1600,
 				"price": 1600,
 				"additionalAmount": "27.991715",
 				"endTimestamp": "2023-02-17T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xace17cf9b49439d9c5fa3677fef9b90d71320846",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 7250,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 7250,
 				"price": 1450,
 				"additionalAmount": "66.502625",
 				"endTimestamp": "2023-02-17T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x2262d79e496a29417dd11198be3e6bd25e1fa6ce",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 11,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 11,
 				"price": 1650,
 				"additionalAmount": "48.73484",
 				"endTimestamp": "2023-02-17T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},
@@ -1072,37 +1132,40 @@
 				"user": "0xea228f3bf93683bf7e95d62c148e9ad24cb98d59",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1700,
 				"additionalAmount": "4.561704",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x9de14ec77e1292f2e4301a97d3b68f8242254ade",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 27900,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 27900,
 				"price": 1550,
 				"additionalAmount": "311.44491",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xace17cf9b49439d9c5fa3677fef9b90d71320846",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 7000,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 7000,
 				"price": 1400,
 				"additionalAmount": "66.986499",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x135d413a5b89c57f5cdc7fa5fa56f86bafab6e43",
@@ -1121,145 +1184,157 @@
 				"user": "0x9de14ec77e1292f2e4301a97d3b68f8242254ade",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 13200,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 13200,
 				"price": 1650,
 				"additionalAmount": "244.513359",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x7ae65ef4586374884cc885280d88c51fa62bf564",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 45,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 45,
 				"price": 1650,
 				"additionalAmount": "1012.609552",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x1ffce952fef74066512d9c023dc6f794b9ff4999",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1550,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1550,
 				"price": 1550,
 				"additionalAmount": "11.731261",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xea228f3bf93683bf7e95d62c148e9ad24cb98d59",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1600,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1600,
 				"price": 1600,
 				"additionalAmount": "18.102682",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x9de14ec77e1292f2e4301a97d3b68f8242254ade",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 13950,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 13950,
 				"price": 1550,
 				"additionalAmount": "100.568349",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x3dd9e7be302841517ae494b54addfd3f165f8ae7",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 2,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 2,
 				"price": 1750,
 				"additionalAmount": "8.019487",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x6f1fa61717fcdc26e38f8228dd0ef13a12b9c054",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1550,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1550,
 				"price": 1550,
 				"additionalAmount": "11.084087",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x1ffce952fef74066512d9c023dc6f794b9ff4999",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 3300,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 3300,
 				"price": 1650,
 				"additionalAmount": "54.702326",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xea228f3bf93683bf7e95d62c148e9ad24cb98d59",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1750,
 				"additionalAmount": "16.614234",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xea228f3bf93683bf7e95d62c148e9ad24cb98d59",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1550,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1550,
 				"price": 1550,
 				"additionalAmount": "4.557476",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xace17cf9b49439d9c5fa3677fef9b90d71320846",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 3,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 3,
 				"price": 1750,
 				"additionalAmount": "51.820114",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0xdd6192b1993c3c5250afdf6207ec89379fdf8916",
 				"tokenIn": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountIn": 1450,
+				"tokenOut": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
 				"amountOut": 1450,
 				"price": 1450,
 				"additionalAmount": "7.503678",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "ETH",
 				"direction": "buy",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x4d0e2ffbeb8232dd04645dcce3b642317794e4a1",
@@ -1278,37 +1353,40 @@
 				"user": "0xcf443e1284d72aef5afcc5825aad1852378b5ba8",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 2,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 2,
 				"price": 1650,
 				"additionalAmount": "27.723696",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x1ffce952fef74066512d9c023dc6f794b9ff4999",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1600,
 				"additionalAmount": "24.601191",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			},
 			{
 				"user": "0x5a8fe73e0a8ce06d008a227063ca8542bb5b7bd8",
 				"tokenIn": "0x0000000000000000000000000000000000000000",
 				"amountIn": 1,
+				"tokenOut": "0x0000000000000000000000000000000000000000",
 				"amountOut": 1,
 				"price": 1750,
 				"additionalAmount": "7.766794",
 				"endTimestamp": "2023-02-24T08:00:00.000Z",
 				"targetTokenSymbolOut": "USDC",
 				"direction": "sell",
-				"order_executed": null
+				"order_executed": false
 			}
 		]
 	},

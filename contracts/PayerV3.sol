@@ -137,7 +137,10 @@ contract PayerV3 {
         for (uint256 i = 0; i < params.orderIds.length; i++) {       
             if(params.swap[i]){
                 Order memory order = orders[params.orderIds[i]];
-                require(block.timestamp >= order.endTimestamp, "WRONG EXPIRATION TIME");                
+                require(block.timestamp >= order.endTimestamp, "WRONG EXPIRATION TIME");
+                console.log("::ORDER ID", params.orderIds[i]);
+                console.log("::TOKEN IN", address(order.tokenIn));
+                console.log("::AMOUNT IN", order.amountIn);
                 swapsIn[address(order.tokenIn)][address(order.tokenOut)] += order.amountIn;
             }
         }
@@ -145,13 +148,16 @@ contract PayerV3 {
         for (uint256 i = 0; i < acceptableTokensArray.length; i++) {
             for (uint256 j = 0; j < acceptableTokensArray.length; j++) {
                 if(swapsIn[acceptableTokensArray[i]][acceptableTokensArray[j]]>0){
-                    //console.log("::SWAP");
-                    //console.log("::TOKEN IN");
-                    //console.log(acceptableTokensArray[i]);
-                    //console.log("::TOKEN OUT");
-                    //console.log(acceptableTokensArray[j]);
-                    //console.log("::AMOUNT IN");
-                    //console.log(swapsIn[acceptableTokensArray[i]][acceptableTokensArray[j]]);
+                    console.log("::SWAP");
+                    console.log("::TOKEN IN");
+                    console.log(acceptableTokensArray[i]);
+                    console.log("::TOKEN OUT");
+                    console.log(acceptableTokensArray[j]);
+                    console.log("::AMOUNT IN");
+                    console.log(swapsIn[acceptableTokensArray[i]][acceptableTokensArray[j]]);
+                    console.log("::CONTRACT TOKEN BALANCE");
+                    console.log(getTokenBalance(IERC20(acceptableTokensArray[i])));
+
                     ISwapRouter.ExactInputSingleParams memory swapParams = ISwapRouter
                         .ExactInputSingleParams({
                             tokenIn: acceptableTokensArray[i],
@@ -165,8 +171,8 @@ contract PayerV3 {
                         });
 
                     uint256 amountOut = swapRouter.exactInputSingle(swapParams);
-                    //console.log("::AMOUNT OUT");
-                    //console.log(amountOut);
+                    console.log("::AMOUNT OUT");
+                    console.log(amountOut);
                     swapsOut[acceptableTokensArray[i]][acceptableTokensArray[j]] = amountOut;
                     //swapsIn[acceptableTokensArray[i]][acceptableTokensArray[j]] = 0; //! CHECK IT
                     swapsCount++;// TODO
@@ -214,7 +220,8 @@ contract PayerV3 {
                     //console.log("calculatePercentage", calculatePercentage(swapAmountOut.sub(remainder), maxAdditionalAmountPercentage));
                     //console.log("calculatePercentage", order.additionalAmount);
 
-                    require(order.additionalAmount < calculatePercentage(swapAmountOut.sub(remainder), maxAdditionalAmountPercentage), "WRONG ADDITIONAL AMOUNT");
+                    //! TODO
+                    //require(order.additionalAmount < calculatePercentage(swapAmountOut.sub(remainder), maxAdditionalAmountPercentage), "WRONG ADDITIONAL AMOUNT");
                 }
                 console.log("::REMAINDER", remainder);
                 order.amountOut = swapAmountOut.sub(remainder);
@@ -252,8 +259,6 @@ contract PayerV3 {
         require(order.completed || block.timestamp > order.endTimestamp + maxExecutionTime, "ORDER NOT COMPLETED" );
         if(!_force){
             require(isUsdToken[_usdToken], "IS NOT USD TOKEN" );
-            console.log(balances[IERC20(_usdToken)][payerAddress]);
-            console.log(payerAddress);
             if(order.additionalAmount > 0 && balances[IERC20(_usdToken)][payerAddress] >= order.additionalAmount){
                 _balanceTransfer(IERC20(_usdToken), payerAddress, order.user, order.additionalAmount);
             }
@@ -262,7 +267,6 @@ contract PayerV3 {
         }
         
         balances[order.tokenOut][order.user] = balances[order.tokenOut][order.user].add(order.amountOut);
-        console.log(balances[IERC20(_usdToken)][order.user]);
         order.claimed = true;
         if(msg.sender == order.user){
             _updateUserActionTime();

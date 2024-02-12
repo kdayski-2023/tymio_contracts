@@ -26,7 +26,6 @@ async function getSigners() {
   for (let i = 2; i < accounts.length; i++) {
     users.push(accounts[i]);
   }
-  await drainBalances([owner, ...users], users[users.length - 1].address);
   log(`✔ [contract] Деплой адресов`, 'yellow');
   return [service, owner, users];
 }
@@ -48,7 +47,6 @@ async function deployTokens() {
     const WETH = await hre.ethers.getContractFactory('WETH9');
     let weth = await WETH.deploy();
     weth = await weth.deployed();
-
     log('✔ [contract] Деплой токенов V3', 'yellow');
     return { usdc, usdt, weth, wbtc };
   } catch (e) {
@@ -90,43 +88,12 @@ async function getTotalEthFromMint(mint) {
   }
 }
 
-// Минтим всем пользователям токены в количестве депозита
-async function mintTokensForUsers(mint, tokensV3) {
-  try {
-    const balanceToPayFee = 1;
-    const transferer = await getEthTransferer();
-    const ethToTransfer = await getTotalEthFromMint(mint['ETH']);
-    await setAccountBalance(transferer.address, ethToTransfer, balanceToPayFee);
-
-    for (const [token, addresses] of Object.entries(mint)) {
-      for (const [address, amount] of Object.entries(addresses)) {
-        if (token === 'ETH') {
-          const value = ethers.utils.parseUnits(amount.toString(), 'ether');
-          const tx = await transferer.sendTransaction({
-            to: address,
-            value,
-          });
-          await tx.wait();
-        } else {
-          const tx = await tokensV3[token].mint(address, sToken(amount, token));
-          await tx.wait();
-        }
-      }
-    }
-  } catch (e) {
-    throw e;
-  }
-}
-
 async function setAdditionalAmountToContract(
   payer,
   additionalAmount,
   owner,
   tokensV3
 ) {
-  console.log(payer.address);
-  console.log(owner.address);
-
   const usdc = tokensV3['USDC'];
   const usdcAddress = usdc.address;
   tx = await usdc
@@ -145,31 +112,6 @@ async function setAdditionalAmountToContract(
     )}`,
     'yellow'
   );
-}
-
-// Минтим всем контракту токены в количестве минимальных обязательств
-async function mintTokensForContract(mint, tokensV3, owner) {
-  try {
-    const balanceToPayFee = 1;
-    const transferer = await getEthTransferer();
-    const ethToTransfer = await getTotalEthFromMint(mint['ETH']);
-    await setAccountBalance(transferer.address, ethToTransfer, balanceToPayFee);
-    for (const [token, amount] of Object.entries(mint)) {
-      if (token === 'ETH') {
-        const value = ethers.utils.parseUnits(amount.toString(), 'ether');
-        const tx = await transferer.sendTransaction({
-          to: owner,
-          value,
-        });
-        await tx.wait();
-      } else {
-        const tx = await tokensV3[token].mint(owner, sToken(amount, token));
-        await tx.wait();
-      }
-    }
-  } catch (e) {
-    throw e;
-  }
 }
 
 async function deploySwapRouter() {
@@ -216,10 +158,9 @@ async function compareUserBalances(mint, tokensV3) {
             'magenta'
           );
         } else {
-          log(
-            `✖ [ethers][user] Баланс нужен: ${amount} ${token} / На остатке: ${balance} ${token} у ${address}`,
-            'red'
-          );
+          const message = `✖ [ethers][user] Баланс нужен: ${amount} ${token} / На остатке: ${balance} ${token} у ${address}`;
+          log(message, 'red');
+          throw new Error(message);
         }
       }
     }
@@ -266,21 +207,19 @@ async function compareBalanceUsdc(
   usdcSymbol,
   address
 ) {
-  console.log({ usdcAddress, address, usdcSymbol });
   const balanceUsdc = cToken(
     await payer.balanceOf(usdcAddress, address),
     usdcSymbol
   );
-  if (String(balanceUsdc) === String(balanceUsdcNeed)) {
+  if (parseFloat(balanceUsdc) === parseFloat(balanceUsdcNeed)) {
     log(
       `✔ [contract][user] Баланс нужен: ${balanceUsdcNeed} ${usdcSymbol} / На остатке: ${balanceUsdc} ${usdcSymbol} у ${address}`,
       'yellow'
     );
   } else {
-    log(
-      `✖ [contract][user] Баланс нужен: ${balanceUsdcNeed} ${usdcSymbol} / На остатке: ${balanceUsdc} ${usdcSymbol} у ${address}`,
-      'red'
-    );
+    const message = `✖ [contract][user] Баланс нужен: ${balanceUsdcNeed} ${usdcSymbol} / На остатке: ${balanceUsdc} ${usdcSymbol} у ${address}`;
+    log(message, 'red');
+    throw new Error(message);
   }
 }
 
@@ -322,16 +261,15 @@ async function checkContractBalances(payer, orders, tokensV3) {
           usdcSymbol,
           address
         );
-        if (String(parseFloat(balance)) === String(order.amountOut)) {
+        if (parseFloat(balance) === parseFloat(order.amountOut)) {
           log(
             `✔ [contract][user] Баланс нужен: ${order.amountOut} ${tokenOutSymbol} / На остатке: ${balance} ${tokenOutSymbol} у ${address}`,
             'yellow'
           );
         } else {
-          log(
-            `✖ [contract][user] Баланс нужен: ${order.amountOut} ${tokenOutSymbol} / На остатке: ${balance} ${tokenOutSymbol} у ${address}`,
-            'red'
-          );
+          const message = `✖ [contract][user] Баланс нужен: ${order.amountOut} ${tokenOutSymbol} / На остатке: ${balance} ${tokenOutSymbol} у ${address}`;
+          log(message, 'red');
+          throw new Error(message);
         }
       }
     }
@@ -358,10 +296,9 @@ async function checkEtherBalances(mint, tokensV3) {
             'magenta'
           );
         } else {
-          log(
-            `✖ [ethers][user] Баланс нужен: ${amount} ${token} / На остатке: ${balance} ${token} у ${address}`,
-            'red'
-          );
+          const message = `✖ [ethers][user] Баланс нужен: ${amount} ${token} / На остатке: ${balance} ${token} у ${address}`;
+          log(message, 'red');
+          throw new Error(message);
         }
       }
     }
@@ -422,10 +359,9 @@ async function compareContractBalances(mint, tokensV3, owner) {
           'magenta'
         );
       } else {
-        log(
-          `✖ [ethers][service] Баланс нужен: ${amount} ${token} / На остатке: ${balance} ${token}`,
-          'red'
-        );
+        const message = `✖ [ethers][service] Баланс нужен: ${amount} ${token} / На остатке: ${balance} ${token}`;
+        log(message, 'red');
+        throw new Error(message);
       }
     }
   } catch (e) {
@@ -433,26 +369,26 @@ async function compareContractBalances(mint, tokensV3, owner) {
   }
 }
 
-async function mintTokens(mint, additionalAmount, tokensV3, ownerAddress) {
+async function mintTokens(tokensV3) {
   try {
-    mint.contract = {
-      ...mint.contract,
-      USDC: parseFloat(
-        cToken(
-          convertFloatToBnString(
-            mint.contract.USDC + additionalAmount,
-            DECIMALS.USDC
-          ),
-          'USDC'
-        )
-      ),
-    };
-    await mintTokensForUsers(mint.users, tokensV3);
-    await mintTokensForContract(mint.contract, tokensV3, ownerAddress);
+    const accounts = await ethers.getSigners();
+    for (const account of accounts) {
+      tx = await tokensV3['USDC'].mint(
+        account.address,
+        sToken(1000000, 'USDC')
+      );
+      await tx.wait();
+      tx = await tokensV3['WBTC'].mint(account.address, sToken(100, 'WBTC'));
+      await tx.wait();
+    }
     log('✔ [ethers] Минт токенов', 'magenta');
   } catch (e) {
     throw e;
   }
+}
+
+async function sendEthForTransfer(owner, wethAddress) {
+  await owner.sendTransaction({ to: wethAddress, value: sToken(100, 'ETH') });
 }
 
 async function compareBalances(mint, tokensV3, ownerAddress) {
@@ -477,4 +413,5 @@ module.exports = {
   checkContractBalances,
   checkEtherBalances,
   drainBalances,
+  sendEthForTransfer,
 };

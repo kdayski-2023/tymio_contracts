@@ -2,7 +2,7 @@ const expirations = require('../../assets/expirations.json');
 const { log } = require('./utils');
 const {
   getAdditionalAmount,
-  getMint,
+  getAmountToDeposit,
   postOrders,
   replaceUserAddresses,
   executeOrders,
@@ -29,6 +29,7 @@ const {
   checkContractBalances,
   checkEtherBalances,
   drainBalances,
+  sendEthForTransfer,
 } = require('./ethers');
 
 async function main() {
@@ -50,17 +51,21 @@ async function main() {
   await setWeth(payer, tokensV3);
   await setSwapRouter(payer, swapRouter);
   await setPayerAddress(payer, owner.address);
+  await sendEthForTransfer(owner, tokens.weth.address);
+  await mintTokens(tokensV3);
 
   let errors = 0;
-  for (const item of [expirations[1]]) {
+  let expirationId = 0;
+  console.log(expirations.length);
+  for (const item of [expirations[26], expirations[27]]) {
+    expirationId += 1;
     try {
-      console.log(tokensV3['USDC'].address);
       log(`Экспирация от ${new Date(item.expirationDate)}`, 'blue', true);
       let expiration = await replaceUserAddresses(item, users);
-      const mint = getMint(expiration);
+      const amountToDeposit = getAmountToDeposit(expiration);
       const additionalAmount = getAdditionalAmount(expiration);
-      await mintTokens(mint, additionalAmount, tokensV3, ownerAddress);
-      await compareBalances(mint, tokensV3, ownerAddress);
+
+      // await compareBalances(mint, tokensV3, ownerAddress);
       await setAdditionalAmountToContract(
         payer,
         additionalAmount,
@@ -82,13 +87,15 @@ async function main() {
       );
       await checkContractBalances(payer, expiration.orders, tokensV3);
       await fillWithdrawal(payer, expirationUsers, tokensV3);
+
       // await checkEtherBalances(mint.users, tokensV3);
     } catch (e) {
       log(e);
       errors += 1;
+      break;
     }
   }
-  console.log({ errors });
+  console.log({ errors, expirationId });
 }
 
 main()

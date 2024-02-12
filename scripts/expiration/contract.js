@@ -4,7 +4,7 @@ async function setSwapRouter(payer, swapRouter) {
   try {
     tx = await payer.setSwapRouter(swapRouter.address);
     await tx.wait();
-    log('✔ [contract] Swap router установлен', 'yellow', true);
+    log('✔ [contract] Swap router установлен', 'yellow');
   } catch (e) {
     throw e;
   }
@@ -42,13 +42,11 @@ async function setPayerAddress(payer, payerAddress) {
 
 async function setRatio(swapRouter, tokens, prices) {
   try {
-    log('✔ [expiration] Цены токенов на основе экспирации', 'green');
     const usdWbtcPrice = thowDotPart(sToken(1, 'WBTC') / prices['WBTC']); // цена 1 usd к btc
     const wbtcUsdPrice = sToken(prices['WBTC'], 'USD'); // цена 1 btc к usd
     const ethUsdPrice = sToken(prices['WETH'], 'USD'); // цена 1 eth к usd
     const usdEthPrice = thowDotPart(sToken(1, 'WETH') / prices['WETH']); // цена 1 usd к eth
-    log(prices);
-    log({ usdWbtcPrice, wbtcUsdPrice, ethUsdPrice, usdEthPrice });
+    log('✔ [expiration] Цены токенов на основе экспирации', 'green');
     tx = await swapRouter.setRatio(
       tokens['USDC'].address,
       tokens['WETH'].address,

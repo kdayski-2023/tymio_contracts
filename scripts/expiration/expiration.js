@@ -6,6 +6,7 @@ const {
   wait,
 } = require('./utils');
 const { tokensV1, DECIMALS } = require('./contants');
+const { checkContractBalances } = require('./ethers');
 
 function getAdditionalAmount(expiration) {
   try {
@@ -15,6 +16,14 @@ function getAdditionalAmount(expiration) {
       // Аккумулируем комиссию
       additionalAmountSum += Number(order.additionalAmount);
     }
+    additionalAmountSum = cToken(
+      convertFloatToBnString(
+        Math.round(additionalAmountSum * 10 ** DECIMALS.USDC) /
+          10 ** DECIMALS.USDC,
+        DECIMALS.USDC
+      ),
+      'USDC'
+    );
     log('✔ [expiration] Обязательства на выплату контрактом комиссии', 'green');
     return additionalAmountSum;
   } catch (e) {
@@ -22,7 +31,7 @@ function getAdditionalAmount(expiration) {
   }
 }
 
-function getMint(expiration) {
+function getAmountToDeposit(expiration) {
   try {
     // Сумма минта токенов на контракт для выплаты обязательств
     const mintForContract = {
@@ -50,12 +59,10 @@ function getMint(expiration) {
       `✔ [expiration] Обязательства взноса пользователями сформированы`,
       'green'
     );
-    log(mintForUsers);
     log(
       `✔ [expiration] Минимальные обязательства на выплату контрактом сформированы`,
       'green'
     );
-    log(mintForContract);
     return { contract: mintForContract, users: mintForUsers };
   } catch (e) {
     throw e;
@@ -99,14 +106,6 @@ async function postOrders(payer, expiration, tokensV3) {
         const _duration = orderDuration;
         const value = sToken(amountIn, 'ETH');
 
-        console.log([
-          _tokenAddressIn,
-          _tokenAddressOut,
-          _amount,
-          _price,
-          _duration,
-          { value },
-        ]);
         tx = await payer
           .connect(signer)
           .depositEthAndOrder(
@@ -161,12 +160,22 @@ async function postOrders(payer, expiration, tokensV3) {
 async function executeOrders(payer, expiration, tokensV3) {
   try {
     let args = [[], [], []];
+    const swapAmount = { ETH: 0, USDC: 0, WBTC: 0 };
+    for (const order of expiration.orders) {
+      const { tokenIn, amountIn } = await payer.orders(order.contract_id);
+      console.log(tokenIn, amountIn);
+    }
     for (const order of expiration.orders) {
       args[0].push(order.contract_id);
       args[1].push(order.order_executed);
       args[2].push(sToken(order.additionalAmount, 'USDC'));
+      if (order.order_executed) {
+        swapAmount[order.targetTokenSymbolOut] =
+          swapAmount[order.targetTokenSymbolOut] + order.amountOut;
+      }
     }
     console.log(args);
+    console.log(swapAmount);
     //args = [[args[0][7]], [args[1][7]], [args[2][7]]];
     tx = await payer.executeOrders(args, []);
     tx = await tx.wait();
@@ -183,8 +192,6 @@ async function claimOrders(payer, expiration, tokensV3) {
       const user = order.signer;
       const claimTokenAddress = tokensV3['USDC'].address;
       tx = await payer.orders(id);
-      console.log(tx);
-      log([id, claimTokenAddress, false]);
       tx = await payer.connect(user).claimOrder(id, claimTokenAddress, false);
       tx = await tx.wait();
     }
@@ -259,7 +266,7 @@ async function fillWithdrawal(payer, users, tokensV3) {
 
 module.exports = {
   getAdditionalAmount,
-  getMint,
+  getAmountToDeposit,
   postOrders,
   replaceUserAddresses,
   executeOrders,
