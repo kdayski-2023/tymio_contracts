@@ -138,9 +138,9 @@ contract PayerV3 {
             if(params.swap[i]){
                 Order memory order = orders[params.orderIds[i]];
                 require(block.timestamp >= order.endTimestamp, "WRONG EXPIRATION TIME");
-                console.log("::ORDER ID", params.orderIds[i]);
-                console.log("::TOKEN IN", address(order.tokenIn));
-                console.log("::AMOUNT IN", order.amountIn);
+                //console.log("::ORDER ID", params.orderIds[i]);
+                //console.log("::TOKEN IN", address(order.tokenIn));
+                //console.log("::AMOUNT IN", order.amountIn);
                 swapsIn[address(order.tokenIn)][address(order.tokenOut)] += order.amountIn;
             }
         }
@@ -148,15 +148,15 @@ contract PayerV3 {
         for (uint256 i = 0; i < acceptableTokensArray.length; i++) {
             for (uint256 j = 0; j < acceptableTokensArray.length; j++) {
                 if(swapsIn[acceptableTokensArray[i]][acceptableTokensArray[j]]>0){
-                    console.log("::SWAP");
-                    console.log("::TOKEN IN");
-                    console.log(acceptableTokensArray[i]);
-                    console.log("::TOKEN OUT");
-                    console.log(acceptableTokensArray[j]);
-                    console.log("::AMOUNT IN");
-                    console.log(swapsIn[acceptableTokensArray[i]][acceptableTokensArray[j]]);
-                    console.log("::CONTRACT TOKEN BALANCE");
-                    console.log(getTokenBalance(IERC20(acceptableTokensArray[i])));
+                    //console.log("::SWAP");
+                    //console.log("::TOKEN IN");
+                    //console.log(acceptableTokensArray[i]);
+                    //console.log("::TOKEN OUT");
+                    //console.log(acceptableTokensArray[j]);
+                    //console.log("::AMOUNT IN");
+                    //console.log(swapsIn[acceptableTokensArray[i]][acceptableTokensArray[j]]);
+                    //console.log("::CONTRACT TOKEN BALANCE");
+                    //console.log(getTokenBalance(IERC20(acceptableTokensArray[i])));
 
                     ISwapRouter.ExactInputSingleParams memory swapParams = ISwapRouter
                         .ExactInputSingleParams({
@@ -171,8 +171,8 @@ contract PayerV3 {
                         });
 
                     uint256 amountOut = swapRouter.exactInputSingle(swapParams);
-                    console.log("::AMOUNT OUT");
-                    console.log(amountOut);
+                    //console.log("::AMOUNT OUT");
+                    //console.log(amountOut);
                     swapsOut[acceptableTokensArray[i]][acceptableTokensArray[j]] = amountOut;
                     
                     swapsCount++;// TODO
@@ -194,36 +194,36 @@ contract PayerV3 {
             Order storage order = orders[orderId];
             order.additionalAmount = additionalAmount; // ! ADD _aditionAmount Limit check
             order.completed = true;
-            console.log("::orderId", orderId);
-            console.log(":TOKEN OUT ",  address(order.tokenOut));
+            //console.log("::orderId", orderId);
+            //console.log(":TOKEN OUT ",  address(order.tokenOut));
             if(swap){
                 uint256 accuracy = 10 ** order.tokenOut.decimals();
                 if(wethAddress == address(order.tokenOut)){
                     accuracy = 1e10;// ! CHECK
                 }
                 uint256 proportionIn = calculateProportion(swapsIn[address(order.tokenIn)][address(order.tokenOut)], order.amountIn, accuracy);
-                console.log(":TOTAL SWAP OUT",  swapsOut[address(order.tokenIn)][address(order.tokenOut)]);
-                console.log(":TOTAL SWAP IN",  swapsIn[address(order.tokenIn)][address(order.tokenOut)]);
-                console.log(":ORDER amountIn",  order.amountIn);
-                console.log(":PROPORTION IN",  proportionIn);
+                //console.log(":TOTAL SWAP OUT",  swapsOut[address(order.tokenIn)][address(order.tokenOut)]);
+                //console.log(":TOTAL SWAP IN",  swapsIn[address(order.tokenIn)][address(order.tokenOut)]);
+                //console.log(":ORDER amountIn",  order.amountIn);
+                //console.log(":PROPORTION IN",  proportionIn);
                 
                 uint256 swapAmountOut = swapsOut[address(order.tokenIn)][address(order.tokenOut)].mul(accuracy).div(proportionIn);
                 uint256 remainder = 0;                
-                console.log("::SWAP AMOUNT OUT", swapAmountOut);
-                console.log("::IS USD", isUsdToken[address(order.tokenIn)]);
+                //console.log("::SWAP AMOUNT OUT", swapAmountOut);
+                //console.log("::IS USD", isUsdToken[address(order.tokenIn)]);
                 
                 if(isUsdToken[address(order.tokenIn)]){ // 
-                    console.log("::PRICE", order.price);
-                    console.log("::CALC", order.amountIn * 10 ** order.tokenOut.decimals() / order.price );
+                    //console.log("::PRICE", order.price);
+                    //console.log("::CALC", order.amountIn * 10 ** order.tokenOut.decimals() / order.price );
                     remainder = swapAmountOut - order.amountIn * 10 ** order.tokenOut.decimals() / order.price;                     
                 }else{                    
-                    console.log("::PRICE", order.price);
-                    console.log("::CALC", order.amountIn * order.price / 10 ** order.tokenIn.decimals() );
+                    //console.log("::PRICE", order.price);
+                    //console.log("::CALC", order.amountIn * order.price / 10 ** order.tokenIn.decimals() );
                     remainder = swapAmountOut - order.amountIn * order.price / 10 ** order.tokenIn.decimals();
                     //! TODO
                     //require(order.additionalAmount < calculatePercentage(swapAmountOut.sub(remainder), maxAdditionalAmountPercentage), "WRONG ADDITIONAL AMOUNT");
                 }
-                console.log("::REMAINDER", remainder);
+                //console.log("::REMAINDER", remainder);
                 order.amountOut = swapAmountOut.sub(remainder);
                 balances[order.tokenOut][payerAddress] = balances[order.tokenOut][payerAddress].add(remainder);
             }else{

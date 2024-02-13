@@ -1,8 +1,7 @@
 const expirations = require('../../assets/expirations.json');
-const { log } = require('./utils');
+const { log, cToken } = require('./utils');
 const {
   getAdditionalAmount,
-  getAmountToDeposit,
   postOrders,
   replaceUserAddresses,
   executeOrders,
@@ -21,20 +20,16 @@ const {
   deploySwapRouter,
   deployPayer,
   mintTokens,
-  compareBalances,
   getSigners,
-  checkBalances,
   checkServiceBalances,
   setAdditionalAmountToContract,
   checkContractBalances,
-  checkEtherBalances,
-  drainBalances,
   sendEthForTransfer,
+  checkEmptyBalance,
 } = require('./ethers');
 
 async function main() {
   const [service, owner, users] = await getSigners();
-  const ownerAddress = owner.address;
   const tokens = await deployTokens();
   const swapRouter = await deploySwapRouter();
   const payer = await deployPayer();
@@ -56,25 +51,25 @@ async function main() {
 
   let errors = 0;
   let expirationId = 0;
-  for (const item of [expirations[60]]) {
+  for (const item of [expirations[expirations.length - 1]]) {
     expirationId += 1;
     try {
       log(
-        `Экспирация от ${new Date(item.expirationDate)} №${expirationId}`,
-        'blue',
-        true
+        `✔ [expiration][info] Экспирация от ${new Date(
+          item.expirationDate
+        )} №${expirationId}`,
+        'blue'
       );
       let expiration = await replaceUserAddresses(item, users);
-      const amountToDeposit = getAmountToDeposit(expiration);
       const additionalAmount = getAdditionalAmount(expiration);
 
-      // await compareBalances(mint, tokensV3, ownerAddress);
       await setAdditionalAmountToContract(
         payer,
         additionalAmount,
         owner,
         tokensV3
       );
+      await checkServiceBalances(payer, owner.address, tokensV3);
       await setRatio(swapRouter, tokensV3, expiration.prices);
 
       expiration = await postOrders(payer, expiration, tokensV3);
@@ -90,8 +85,44 @@ async function main() {
       );
       await checkContractBalances(payer, expiration.orders, tokensV3);
       await fillWithdrawal(payer, expirationUsers, tokensV3);
+      await checkEmptyBalance(payer, expirationUsers, tokensV3);
 
-      // await checkEtherBalances(mint.users, tokensV3);
+      const balanceUsdc = cToken(
+        await payer.getTokenBalance(tokensV3['USDC'].address),
+        ['USDC']
+      );
+      const balanceEth = cToken(await payer.getEthBalance());
+      const balanceWeth = cToken(
+        await payer.getTokenBalance(tokensV3['WETH'].address),
+        ['WETH']
+      );
+      const balanceWbtc = cToken(
+        await payer.getTokenBalance(tokensV3['WBTC'].address),
+        ['WBTC']
+      );
+      log(
+        `✔ [contract][service] Баланс после вывода USDC: ${balanceUsdc} | WBTC: ${balanceWbtc} | WETH: ${balanceWeth} | ETH: ${balanceEth}`,
+        'blue'
+      );
+      // if (
+      //   parseFloat(balanceUsdc) > 0 ||
+      //   parseFloat(balanceWeth) > 0 ||
+      //   parseFloat(balanceWbtc) > 0 ||
+      //   parseFloat(balanceEth) > 0
+      // ) {
+      //   log(
+      //     `✖ [contract][service] Баланс после вывода USDC: ${balanceUsdc} | WBTC: ${balanceWbtc} | WETH: ${balanceWeth} | ETH: ${balanceEth}`,
+      //     'red'
+      //   );
+      //   throw new Error(
+      //     `✖ [contract][service] Баланс после вывода USDC: ${balanceUsdc} | WBTC: ${balanceWbtc} | WETH: ${balanceWeth} | ETH: ${balanceEth}`
+      //   );
+      // } else {
+      //   log(
+      //     `✔ [contract][service] Баланс после вывода USDC: ${balanceUsdc} | WBTC: ${balanceWbtc} | WETH: ${balanceWeth} | ETH: ${balanceEth}`,
+      //     'green'
+      //   );
+      // }
     } catch (e) {
       log(e);
       errors += 1;

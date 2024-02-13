@@ -23,7 +23,7 @@ contract WETH9 {
     }
     function withdraw(uint wad) public {
         require(balanceOf[msg.sender] >= wad);
-        console.log("WETH9", balanceOf[msg.sender]);
+        //console.log("WETH9", balanceOf[msg.sender]);
         balanceOf[msg.sender] -= wad;
         msg.sender.transfer(wad);
         emit Withdrawal(msg.sender, wad);

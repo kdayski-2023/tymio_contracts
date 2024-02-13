@@ -26,7 +26,7 @@ async function getSigners() {
   for (let i = 2; i < accounts.length; i++) {
     users.push(accounts[i]);
   }
-  log(`✔ [contract] Деплой адресов`, 'yellow');
+  log(`✔ [contract] Деплой адресов`, 'green');
   return [service, owner, users];
 }
 
@@ -47,7 +47,7 @@ async function deployTokens() {
     const WETH = await hre.ethers.getContractFactory('WETH9');
     let weth = await WETH.deploy();
     weth = await weth.deployed();
-    log('✔ [contract] Деплой токенов V3', 'yellow');
+    log('✔ [contract] Деплой токенов V3', 'green');
     return { usdc, usdt, weth, wbtc };
   } catch (e) {
     throw e;
@@ -105,13 +105,6 @@ async function setAdditionalAmountToContract(
     .deposit(usdcAddress, sToken(additionalAmount, 'USDC'));
   tx = await tx.wait();
   log('✔ [ethers] Отправка additional amount суммы на контракт', 'magenta');
-  log(
-    `✔ [contract]: Баланс в контракте - сервиса USDC ${cToken(
-      await payer.balanceOf(usdcAddress, owner.address),
-      'USDC'
-    )}`,
-    'yellow'
-  );
 }
 
 async function deploySwapRouter() {
@@ -121,7 +114,7 @@ async function deploySwapRouter() {
     );
     let testSwapRouter = await TestSwapRouter.deploy();
     testSwapRouter = await testSwapRouter.deployed();
-    log('✔ [contract] Деплой swap router', 'yellow');
+    log('✔ [contract] Деплой swap router', 'green');
     return testSwapRouter;
   } catch (e) {
     throw e;
@@ -133,7 +126,7 @@ async function deployPayer() {
     const Payer = await hre.ethers.getContractFactory('PayerV3');
     let payer = await Payer.deploy();
     payer = await payer.deployed();
-    log('✔ [contract] Деплой payerV3', 'yellow');
+    log('✔ [contract] Деплой payerV3', 'green');
     return payer;
   } catch (e) {
     throw e;
@@ -175,21 +168,21 @@ async function checkServiceBalances(payer, ownerAddress, tokensV3) {
     const wethAddress = tokensV3['WETH'].address;
     const wbtcAddress = tokensV3['WBTC'].address;
     log(
-      `✔ [contract]: Баланс в контракте - сервиса WETH ${cToken(
+      `✔ [contract][service] Баланс в контракте - сервиса WETH ${cToken(
         await payer.balanceOf(wethAddress, ownerAddress),
         'WETH'
       )}`,
       'green'
     );
     log(
-      `✔ [contract]: Баланс в контракте - сервиса WBTC ${cToken(
+      `✔ [contract][service] Баланс в контракте - сервиса WBTC ${cToken(
         await payer.balanceOf(wbtcAddress, ownerAddress),
         'WBTC'
       )}`,
       'green'
     );
     log(
-      `✔ [contract]: Баланс в контракте - сервиса USDC ${cToken(
+      `✔ [contract][service] Баланс в контракте - сервиса USDC ${cToken(
         await payer.balanceOf(usdcAddress, ownerAddress),
         'USDC'
       )}`,
@@ -220,13 +213,48 @@ async function compareBalanceUsdc(
     parseFloat(balanceUsdc) - parseFloat(balanceUsdcNeed) < 0.001 //! TODO погрешность
   ) {
     log(
-      `✔ [contract][user] Баланс нужен: ${balanceUsdcNeed} ${usdcSymbol} / На остатке: ${balanceUsdc} ${usdcSymbol} у ${address}`,
-      'yellow'
+      `✔ [contract][user] Баланс нужен: ${balanceUsdcNeed} ${usdcSymbol} | На остатке: ${balanceUsdc} ${usdcSymbol} у ${address}`,
+      'green'
     );
   } else {
-    const message = `✖ [contract][user] Баланс нужен: ${balanceUsdcNeed} ${usdcSymbol} / На остатке: ${balanceUsdc} ${usdcSymbol} у ${address}`;
+    const message = `✖ [contract][user] Баланс нужен: ${balanceUsdcNeed} ${usdcSymbol} | На остатке: ${balanceUsdc} ${usdcSymbol} у ${address}`;
     log(message, 'red');
     throw new Error(message);
+  }
+}
+
+async function checkEmptyBalance(payer, users, tokensV3) {
+  for (const user of users) {
+    const balanceUsdc = cToken(
+      await payer.balanceOf(tokensV3['USDC'].address, user.user),
+      ['USDC']
+    );
+    const balanceWeth = cToken(
+      await payer.balanceOf(tokensV3['WETH'].address, user.user),
+      ['WETH']
+    );
+    const balanceWbtc = cToken(
+      await payer.balanceOf(tokensV3['WBTC'].address, user.user),
+      ['WBTC']
+    );
+    if (
+      parseFloat(balanceUsdc) > 0 ||
+      parseFloat(balanceWeth) > 0 ||
+      parseFloat(balanceWbtc) > 0
+    ) {
+      log(
+        `✖ [contract][user] Баланс после вывода USDC: ${balanceUsdc} | WBTC: ${balanceWbtc} | WETH: ${balanceWeth}`,
+        'ret'
+      );
+      throw new Error(
+        `✖ [contract][user] Баланс после вывода USDC: ${balanceUsdc} | WBTC: ${balanceWbtc} | WETH: ${balanceWeth}`
+      );
+    } else {
+      log(
+        `✔ [contract][user] Баланс после вывода USDC: ${balanceUsdc} | WBTC: ${balanceWbtc} | WETH: ${balanceWeth}`,
+        'green'
+      );
+    }
   }
 }
 
@@ -290,11 +318,11 @@ async function checkContractBalances(payer, orders, tokensV3) {
             parseFloat(balance) - parseFloat(valueNeed) < 0.0000001 //! TODO погрешность
           ) {
             log(
-              `✔ [contract][user] Баланс нужен: ${valueNeed} ${tokenSymbol} / На остатке: ${balance} ${tokenSymbol} у ${address}`,
-              'yellow'
+              `✔ [contract][user] Баланс нужен: ${valueNeed} ${tokenSymbol} | На остатке: ${balance} ${tokenSymbol} у ${address}`,
+              'green'
             );
           } else {
-            const message = `✖ [contract][user] Баланс нужен: ${valueNeed} ${tokenSymbol} / На остатке: ${balance} ${tokenSymbol} у ${address}`;
+            const message = `✖ [contract][user] Баланс нужен: ${valueNeed} ${tokenSymbol} | На остатке: ${balance} ${tokenSymbol} у ${address}`;
             log(message, 'red');
             throw new Error(message);
           }
@@ -355,9 +383,9 @@ async function checkBalances(payer, users, ownerAddress, tokensV3) {
         await payer.balanceOf(usdcAddress, address),
         'USDC'
       );
-      log(`✔ [contract]: Баланс ${balanceWeth} WETH у ${address}`, 'yellow');
-      log(`✔ [contract]: Баланс ${balanceWbtc} WBTC у ${address}`, 'yellow');
-      log(`✔ [contract]: Баланс ${balanceUsdc} USDC у ${address}`, 'yellow');
+      log(`✔ [contract]: Баланс ${balanceWeth} WETH у ${address}`, 'green');
+      log(`✔ [contract]: Баланс ${balanceWbtc} WBTC у ${address}`, 'green');
+      log(`✔ [contract]: Баланс ${balanceUsdc} USDC у ${address}`, 'green');
     }
     await checkServiceBalances(payer, ownerAddress, tokensV3);
   } catch (e) {
@@ -441,4 +469,5 @@ module.exports = {
   checkEtherBalances,
   drainBalances,
   sendEthForTransfer,
+  checkEmptyBalance,
 };

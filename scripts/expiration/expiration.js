@@ -24,7 +24,10 @@ function getAdditionalAmount(expiration) {
       ),
       'USDC'
     );
-    log('✔ [expiration] Обязательства на выплату контрактом комиссии', 'green');
+    log(
+      '✔ [expiration] Обязательства на выплату контрактом комиссии',
+      'yellow'
+    );
     return additionalAmountSum;
   } catch (e) {
     throw e;
@@ -57,11 +60,11 @@ function getAmountToDeposit(expiration) {
     }
     log(
       `✔ [expiration] Обязательства взноса пользователями сформированы`,
-      'green'
+      'yellow'
     );
     log(
       `✔ [expiration] Минимальные обязательства на выплату контрактом сформированы`,
-      'green'
+      'yellow'
     );
     return { contract: mintForContract, users: mintForUsers };
   } catch (e) {
@@ -153,12 +156,11 @@ async function postOrders(payer, expiration, tokensV3) {
         }
       }
       log(
-        `✔ [contract] Запись сделки ${order.contract_id} на ${direction} ${amountIn} ${tokenInSymbol} за ${price}`,
-        'yellow'
+        `✔ [contract] Запись сделки ${order.contract_id} на ${direction} за ${price} USDC | ${amountIn} ${tokenInSymbol}`,
+        'green'
       );
     }
-    log(`✔ [contract] Запись сделок`, 'yellow');
-    log(`Ждем ${expirationDuration} сек`, 'blue');
+    log(`✔ [info] Ждем ${expirationDuration} сек`, 'blue');
     await wait(expirationDuration);
     return expiration;
   } catch (e) {
@@ -171,22 +173,21 @@ async function executeOrders(payer, expiration, tokensV3) {
     let args = [[], [], []];
     const swapAmount = { ETH: 0, USDC: 0, WBTC: 0 };
     for (const order of expiration.orders) {
-      const { tokenIn, amountIn } = await payer.orders(order.contract_id);
-    }
-    for (const order of expiration.orders) {
       args[0].push(order.contract_id);
       args[1].push(order.order_executed);
       args[2].push(sToken(order.additionalAmount, 'USDC'));
       if (order.order_executed) {
         swapAmount[order.targetTokenSymbolOut] =
-        swapAmount[order.targetTokenSymbolOut] + order.amountOut;
+          swapAmount[order.targetTokenSymbolOut] + order.amountOut;
       }
     }
-    console.log(swapAmount)
-    //args = [[args[0][7]], [args[1][7]], [args[2][7]]];
+    log(
+      `✔ [contract][info] Swap amount out USDC: ${swapAmount.USDC} | ETH: ${swapAmount.ETH} | WBTC: ${swapAmount.WBTC}`,
+      'blue'
+    );
     tx = await payer.executeOrders(args, []);
     tx = await tx.wait();
-    log('✔ [contract] Сделки исполнены', 'yellow');
+    log('✔ [contract] Сделки исполнены', 'green');
   } catch (e) {
     throw e;
   }
@@ -201,8 +202,8 @@ async function claimOrders(payer, expiration, tokensV3) {
       tx = await payer.orders(id);
       tx = await payer.connect(user).claimOrder(id, claimTokenAddress, false);
       tx = await tx.wait();
+      log(`✔ [contract][user] Клейм сделки ${id}`, 'green');
     }
-    log(`✔ [contract] Клейм сделок`, 'yellow');
   } catch (e) {
     throw e;
   }
@@ -223,7 +224,7 @@ async function fillWithdrawal(payer, users, tokensV3) {
         tx = await payer.connect(signer).fullWithdrawalETH(balanceWeth);
         tx = await tx.wait();
         log(
-          `✔ [contract]: Вывод ${cToken(
+          `✔ [contract][user] Вывод ${cToken(
             balanceWeth,
             'WETH'
           )} ETH от ${address}`,
@@ -236,7 +237,7 @@ async function fillWithdrawal(payer, users, tokensV3) {
           .fullWithdrawal(wbtcAddress, balanceWbtc);
         tx = await tx.wait();
         log(
-          `✔ [contract]: Вывод ${cToken(
+          `✔ [contract][user] Вывод ${cToken(
             balanceWbtc,
             'WBTC'
           )} WBTC от ${address}`,
@@ -249,7 +250,7 @@ async function fillWithdrawal(payer, users, tokensV3) {
           .fullWithdrawal(usdcAddress, balanceUsdc);
         tx = await tx.wait();
         log(
-          `✔ [contract]: Вывод ${cToken(
+          `✔ [contract][user] Вывод ${cToken(
             balanceUsdc,
             'USDC'
           )} USDC от ${address}`,
@@ -257,19 +258,10 @@ async function fillWithdrawal(payer, users, tokensV3) {
         );
       }
     }
-    log('✔ [contract] Средства выведены', 'yellow');
   } catch (e) {
     throw e;
   }
 }
-
-// log(`[contract]: Баланс в контракте - сервиса USDC ${cUsd(await payer.balanceOf(usdcAddress, ownerAddress))} `)
-// log(`[contract]: Баланс в контракте - сервиса USDT ${cUsd(await payer.balanceOf(usdtAddress, ownerAddress))} `)
-// log(`[contract]: Баланс в контракте - сервиса WETH ${cEth(await payer.balanceOf(wethAddress, ownerAddress))} `)
-// log(`[contract]: Баланс в контракте - пользователя USDC ${cUsd(await payer.balanceOf(usdcAddress, userAddress))} `)
-// log(`[contract]: Баланс в контракте - пользователя USDT ${cUsd(await payer.balanceOf(usdtAddress, userAddress))} `)
-// log(`[contract]: Баланс в контракте - пользователя WETH ${cEth(await payer.balanceOf(wethAddress, userAddress))} `)
-// console.log(cEth(await ethers.provider.getBalance(userAddress)))
 
 module.exports = {
   getAdditionalAmount,
