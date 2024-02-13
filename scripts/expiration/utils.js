@@ -43,7 +43,7 @@ function cToken(amount, token) {
 }
 
 function thowDotPart(amount) {
-  if (!String(amount).includes('.')) return 0;
+  if (!String(amount).includes('.')) return String(amount);
   const [left, _] = String(amount).split('.');
   return left;
 }

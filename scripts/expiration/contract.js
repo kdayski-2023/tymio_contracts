@@ -46,6 +46,8 @@ async function setRatio(swapRouter, tokens, prices) {
     const wbtcUsdPrice = sToken(prices['WBTC'], 'USD'); // цена 1 btc к usd
     const ethUsdPrice = sToken(prices['WETH'], 'USD'); // цена 1 eth к usd
     const usdEthPrice = thowDotPart(sToken(1, 'WETH') / prices['WETH']); // цена 1 usd к eth
+    console.log(prices);
+    console.log({ usdWbtcPrice, wbtcUsdPrice, ethUsdPrice, usdEthPrice });
     log('✔ [expiration] Цены токенов на основе экспирации', 'green');
     tx = await swapRouter.setRatio(
       tokens['USDC'].address,

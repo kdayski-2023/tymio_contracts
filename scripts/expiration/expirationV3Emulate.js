@@ -56,7 +56,7 @@ async function main() {
 
   let errors = 0;
   let expirationId = 0;
-  for (const item of [expirations[42]]) {
+  for (const item of [expirations[60]]) {
     expirationId += 1;
     try {
       log(
