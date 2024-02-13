@@ -71,11 +71,18 @@ function getAmountToDeposit(expiration) {
 
 async function replaceUserAddresses(expiration, users) {
   try {
-    //! TODO по умному реплейснуть, чтобы сохранялись одинаковые адреса на разных сделках того же пользователя
-    // Можно попробовать через объект в качестве ключей адреса
-    for (const [index, order] of expiration.orders.entries()) {
-      order.user = users[index].address;
-      order.signer = users[index];
+    const usersObj = {};
+    let cnt = 0;
+    for (const [_, order] of expiration.orders.entries()) {
+      if (usersObj[order.user]) continue;
+      else {
+        usersObj[order.user] = users[cnt];
+        cnt++;
+      }
+    }
+    for (const [_, order] of expiration.orders.entries()) {
+      order.signer = usersObj[order.user];
+      order.user = usersObj[order.user].address;
     }
     log(
       '✔ [modify] Замена реальных адресов пользователей на сгенерированны',
@@ -165,7 +172,6 @@ async function executeOrders(payer, expiration, tokensV3) {
     const swapAmount = { ETH: 0, USDC: 0, WBTC: 0 };
     for (const order of expiration.orders) {
       const { tokenIn, amountIn } = await payer.orders(order.contract_id);
-      console.log(tokenIn, amountIn);
     }
     for (const order of expiration.orders) {
       args[0].push(order.contract_id);
@@ -176,8 +182,6 @@ async function executeOrders(payer, expiration, tokensV3) {
           swapAmount[order.targetTokenSymbolOut] + order.amountOut;
       }
     }
-    console.log(args);
-    console.log(swapAmount);
     //args = [[args[0][7]], [args[1][7]], [args[2][7]]];
     tx = await payer.executeOrders(args, []);
     tx = await tx.wait();

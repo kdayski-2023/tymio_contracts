@@ -207,13 +207,16 @@ async function compareBalanceUsdc(
   usdcSymbol,
   address
 ) {
-  console.log(await payer.balanceOf(usdcAddress, address));
   const balanceUsdc = cToken(
     await payer.balanceOf(usdcAddress, address),
     usdcSymbol
   );
+  balanceUsdcNeed = cToken(
+    convertFloatToBnString(balanceUsdcNeed, DECIMALS.USDC),
+    'USDC'
+  );
   if (
-    parseFloat(balanceUsdc) === parseFloat(balanceUsdcNeed) ||
+    balanceUsdc === balanceUsdcNeed ||
     parseFloat(balanceUsdc) - parseFloat(balanceUsdcNeed) < 0.001 //! TODO погрешность
   ) {
     log(
@@ -229,51 +232,72 @@ async function compareBalanceUsdc(
 
 async function checkContractBalances(payer, orders, tokensV3) {
   try {
+    const balanceNeed = {};
     for (const order of orders) {
       const tokenOutSymbol = tokensV1[order.tokenOut];
-      const tokenOutAddress = tokensV3[tokenOutSymbol].address;
       const usdcSymbol = 'USDC';
-      const usdcAddress = tokensV3[usdcSymbol].address;
       const address = order.user;
-      const balance = cToken(
-        await payer.balanceOf(tokenOutAddress, address),
-        tokenOutSymbol
-      );
       if (tokenOutSymbol === usdcSymbol) {
         const additionalAmount = parseFloat(order.additionalAmount);
         const amountOut = parseFloat(order.amountOut);
-        const balanceUsdcNeed = parseFloat(
-          cToken(
-            convertFloatToBnString(amountOut + additionalAmount, DECIMALS.USDC),
-            'USDC'
-          )
-        );
-        await compareBalanceUsdc(
-          payer,
-          balanceUsdcNeed,
-          usdcAddress,
-          usdcSymbol,
-          address
-        );
+        const balanceUsdcNeed = amountOut + additionalAmount;
+        if (balanceNeed[address]) {
+          if (balanceNeed[address]['USDC'])
+            balanceNeed[address]['USDC'] =
+              balanceNeed[address]['USDC'] + balanceUsdcNeed;
+          else balanceNeed[address]['USDC'] = balanceUsdcNeed;
+        } else balanceNeed[address] = { USDC: balanceUsdcNeed };
       } else {
         const additionalAmount = parseFloat(order.additionalAmount);
         const balanceUsdcNeed = additionalAmount;
-        await compareBalanceUsdc(
-          payer,
-          balanceUsdcNeed,
-          usdcAddress,
-          usdcSymbol,
-          address
-        );
-        if (parseFloat(balance) === parseFloat(order.amountOut)) {
-          log(
-            `✔ [contract][user] Баланс нужен: ${order.amountOut} ${tokenOutSymbol} / На остатке: ${balance} ${tokenOutSymbol} у ${address}`,
-            'yellow'
+        if (balanceNeed[address]) {
+          if (balanceNeed[address]['USDC'])
+            balanceNeed[address]['USDC'] =
+              balanceNeed[address]['USDC'] + balanceUsdcNeed;
+          else balanceNeed[address]['USDC'] = balanceUsdcNeed;
+        } else balanceNeed[address] = { USDC: balanceUsdcNeed };
+
+        if (balanceNeed[address][tokenOutSymbol])
+          balanceNeed[address][tokenOutSymbol] =
+            balanceNeed[address][tokenOutSymbol] + order.amountOut;
+        else balanceNeed[address][tokenOutSymbol] = order.amountOut;
+      }
+    }
+
+    for (const [address, tokens] of Object.entries(balanceNeed)) {
+      for (const [tokenSymbol, value] of Object.entries(tokens)) {
+        const tokenAddress = tokensV3[tokenSymbol].address;
+
+        if (tokenSymbol === 'USDC')
+          await compareBalanceUsdc(
+            payer,
+            value,
+            tokenAddress,
+            tokenSymbol,
+            address
           );
-        } else {
-          const message = `✖ [contract][user] Баланс нужен: ${order.amountOut} ${tokenOutSymbol} / На остатке: ${balance} ${tokenOutSymbol} у ${address}`;
-          log(message, 'red');
-          throw new Error(message);
+        else {
+          const balance = cToken(
+            await payer.balanceOf(tokenAddress, address),
+            tokenSymbol
+          );
+          const valueNeed = cToken(
+            convertFloatToBnString(value, DECIMALS[tokenSymbol]),
+            tokenSymbol
+          );
+          if (
+            balance === valueNeed ||
+            parseFloat(balance) - parseFloat(valueNeed) < 0.0000001 //! TODO погрешность
+          ) {
+            log(
+              `✔ [contract][user] Баланс нужен: ${valueNeed} ${tokenSymbol} / На остатке: ${balance} ${tokenSymbol} у ${address}`,
+              'yellow'
+            );
+          } else {
+            const message = `✖ [contract][user] Баланс нужен: ${valueNeed} ${tokenSymbol} / На остатке: ${balance} ${tokenSymbol} у ${address}`;
+            log(message, 'red');
+            throw new Error(message);
+          }
         }
       }
     }
@@ -355,7 +379,6 @@ async function compareContractBalances(mint, tokensV3, owner) {
         );
       }
       if (!balance) balance = '0';
-      console.log({ balance, token });
       balance = cToken(balance, token);
       if (sToken(amount, token) === sToken(balance, token)) {
         log(
@@ -392,7 +415,7 @@ async function mintTokens(tokensV3) {
 }
 
 async function sendEthForTransfer(owner, wethAddress) {
-  await owner.sendTransaction({ to: wethAddress, value: sToken(100, 'ETH') });
+  await owner.sendTransaction({ to: wethAddress, value: sToken(5000, 'ETH') });
 }
 
 async function compareBalances(mint, tokensV3, ownerAddress) {

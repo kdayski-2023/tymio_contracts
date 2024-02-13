@@ -56,11 +56,14 @@ async function main() {
 
   let errors = 0;
   let expirationId = 0;
-  console.log(expirations.length);
-  for (const item of [expirations[40]]) {
+  for (const item of [expirations[42]]) {
     expirationId += 1;
     try {
-      log(`Экспирация от ${new Date(item.expirationDate)}`, 'blue', true);
+      log(
+        `Экспирация от ${new Date(item.expirationDate)} №${expirationId}`,
+        'blue',
+        true
+      );
       let expiration = await replaceUserAddresses(item, users);
       const amountToDeposit = getAmountToDeposit(expiration);
       const additionalAmount = getAdditionalAmount(expiration);
