@@ -194,37 +194,32 @@ contract PayerV3 {
             Order storage order = orders[orderId];
             order.additionalAmount = additionalAmount; // ! ADD _aditionAmount Limit check
             order.completed = true;
-            //console.log("::orderId", orderId);
-            //console.log(":TOKEN OUT ",  address(order.tokenOut));
+            console.log("::orderId", orderId);
+            console.log(":TOKEN OUT ",  address(order.tokenOut));
             if(swap){
                 uint256 accuracy = 10 ** order.tokenOut.decimals();
                 if(wethAddress == address(order.tokenOut)){
                     accuracy = 1e10;// ! CHECK
                 }
                 uint256 proportionIn = calculateProportion(swapsIn[address(order.tokenIn)][address(order.tokenOut)], order.amountIn, accuracy);
-                //console.log(":TOTAL SWAP OUT",  swapsOut[address(order.tokenIn)][address(order.tokenOut)]);
-                //console.log(":TOTAL SWAP IN",  swapsIn[address(order.tokenIn)][address(order.tokenOut)]);
-                //console.log(":ORDER amountIn",  order.amountIn);
-                //console.log(":PROPORTION IN",  proportionIn);
+                console.log(":TOTAL SWAP OUT",  swapsOut[address(order.tokenIn)][address(order.tokenOut)]);
+                console.log(":TOTAL SWAP IN",  swapsIn[address(order.tokenIn)][address(order.tokenOut)]);
+                console.log(":ORDER amountIn",  order.amountIn);
+                console.log(":PROPORTION IN",  proportionIn);
                 
-                uint256 swapAmountOut = swapsOut[address(order.tokenIn)][address(order.tokenOut)].div(proportionIn).mul(accuracy);
+                uint256 swapAmountOut = swapsOut[address(order.tokenIn)][address(order.tokenOut)].mul(accuracy).div(proportionIn);
                 uint256 remainder = 0;                
-                //console.log("::SWAP AMOUNT OUT", swapAmountOut);
-                //console.log("::IS USD", isUsdToken[address(order.tokenIn)]);
-                if(isUsdToken[address(order.tokenIn)]){
-                    //console.log("::PRICE", order.price);
-                    //console.log("::CALC", order.amountIn * 10 ** order.tokenOut.decimals() / order.price );
+                console.log("::SWAP AMOUNT OUT", swapAmountOut);
+                console.log("::IS USD", isUsdToken[address(order.tokenIn)]);
+                
+                if(isUsdToken[address(order.tokenIn)]){ // 
+                    console.log("::PRICE", order.price);
+                    console.log("::CALC", order.amountIn * 10 ** order.tokenOut.decimals() / order.price );
                     remainder = swapAmountOut - order.amountIn * 10 ** order.tokenOut.decimals() / order.price;                     
-                }else{
-                    
-                    //console.log("::PRICE", order.price);
-                    //console.log("::CALC", order.amountIn * order.price / 10 ** order.tokenIn.decimals() );
+                }else{                    
+                    console.log("::PRICE", order.price);
+                    console.log("::CALC", order.amountIn * order.price / 10 ** order.tokenIn.decimals() );
                     remainder = swapAmountOut - order.amountIn * order.price / 10 ** order.tokenIn.decimals();
-
-                    //console.log("calculatePercentage", swapAmountOut.sub(remainder));
-                    //console.log("calculatePercentage", calculatePercentage(swapAmountOut.sub(remainder), maxAdditionalAmountPercentage));
-                    //console.log("calculatePercentage", order.additionalAmount);
-
                     //! TODO
                     //require(order.additionalAmount < calculatePercentage(swapAmountOut.sub(remainder), maxAdditionalAmountPercentage), "WRONG ADDITIONAL AMOUNT");
                 }

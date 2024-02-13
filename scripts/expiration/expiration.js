@@ -179,9 +179,10 @@ async function executeOrders(payer, expiration, tokensV3) {
       args[2].push(sToken(order.additionalAmount, 'USDC'));
       if (order.order_executed) {
         swapAmount[order.targetTokenSymbolOut] =
-          swapAmount[order.targetTokenSymbolOut] + order.amountOut;
+        swapAmount[order.targetTokenSymbolOut] + order.amountOut;
       }
     }
+    console.log(swapAmount)
     //args = [[args[0][7]], [args[1][7]], [args[2][7]]];
     tx = await payer.executeOrders(args, []);
     tx = await tx.wait();
