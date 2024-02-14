@@ -56,9 +56,8 @@ contract PayerV3 {
         _;
     }
     ISwapRouter public swapRouter = ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
-    uint24 poolFee = 500; 
-    uint24 maxAdditionalAmountPercentage  = 200; // !2% 
-    
+    uint24 poolFee = 3000; 
+    uint24 maxAdditionalAmountPercentage  = 500;
     uint256 swapDeadline  = 10 minutes;
     mapping(IERC20 => mapping(address => uint256)) public balances;
     mapping(address => mapping(address => uint256)) public swapsIn;
@@ -69,12 +68,12 @@ contract PayerV3 {
     mapping(address => bool) public isUsdToken; 
     address[] public acceptableTokensArray;
     address public wethAddress;
+    address public payerAddress;
     uint maxDuration = 90 days;
     uint maxExecutionTime = 1 seconds;//! IN PROD SET 1 hours
     uint fullAccessAfter = 10 seconds;//! IN PROD SET 360 days
     event Deposit(address indexed user,address indexed token, uint256 amount);
     event NewOrder(uint256 indexed orderId, address indexed user, address indexed token, uint256 amount, uint256 duration);
-    address public payerAddress;
     
     function depositAndOrder(
         IERC20 _tokenAddressIn,
@@ -84,18 +83,16 @@ contract PayerV3 {
         uint256 _duration
     )public{
         deposit(_tokenAddressIn, _amount);
-        makeOrder(_tokenAddressIn,_tokenAddressOut, _amount, _price, _duration);
+        makeOrder(_tokenAddressIn, _tokenAddressOut, _amount, _price, _duration);
     }
     function depositEthAndOrder(
-        IERC20 _tokenAddressIn,
         IERC20 _tokenAddressOut,
         uint256 _amount,
         uint256 _price,
         uint256 _duration
     )public payable{
-        require(address(_tokenAddressIn) == wethAddress, "NOT WETH");
         depositEth();
-        makeOrder(_tokenAddressIn,_tokenAddressOut, _amount, _price, _duration);
+        makeOrder(wethAddress, _tokenAddressOut, _amount, _price, _duration);
     }
     function makeOrder(
         IERC20 _tokenAddressIn,
@@ -105,8 +102,9 @@ contract PayerV3 {
         uint256 _duration
     ) public {
         require(balances[_tokenAddressIn] [msg.sender]>=_amountIn, "NO TOKEN BALANCE");
-        // ! TODO MAX EPIRATION TIME CHECK
-        balances[_tokenAddressIn] [msg.sender] = balances[_tokenAddressIn] [msg.sender].sub(_amountIn);
+        require(_tokenAddressIn != _tokenAddressOut, "SAME TOKENS");
+        require(_duration < maxDuration, "DURATION MORE MAXIMUM");
+        balances[_tokenAddressIn][msg.sender] = balances[_tokenAddressIn][msg.sender].sub(_amountIn);
         orders.push(Order(msg.sender, _tokenAddressIn, _amountIn, _tokenAddressOut, 0, _price, 0, block.timestamp + _duration, false , false ));
         emit NewOrder(orders.length - 1, msg.sender, address(_tokenAddressIn), _amountIn, _duration);
     }
@@ -121,17 +119,17 @@ contract PayerV3 {
         }else{
             require(_tokenAddress.transferFrom(msg.sender, address(this), _amount), "TRANSFER FROM ERROR");
         }
-        balances[_tokenAddress] [msg.sender] = balances[_tokenAddress] [msg.sender] + _amount;
+        balances[_tokenAddress][msg.sender] = balances[_tokenAddress][msg.sender].add(_amount);
         _updateUserActionTime();
         emit Deposit(msg.sender, address(_tokenAddress),_amount);
     }
     function depositEth() public payable {
         IWETH9(wethAddress).deposit{ value: msg.value }();
-        balances[IERC20(wethAddress)] [msg.sender] = balances[IERC20(wethAddress)] [msg.sender].add(msg.value) ;
+        balances[IERC20(wethAddress)][msg.sender] = balances[IERC20(wethAddress)][msg.sender].add(msg.value) ;
         _updateUserActionTime();
         emit Deposit(msg.sender, wethAddress, msg.value);
     }
-    function executeOrders(ExecuteOrderParams calldata params, uint256[] calldata validateAmounts) public onlyOwners {
+    function executeOrders(ExecuteOrderParams calldata params, uint256[] calldata amountOutMinimum) public onlyOwners {
         require(params.orderIds.length == params.swap.length && params.swap.length == params.additionalAmount.length, "DIFFERENT LENGTH");
 
         for (uint256 i = 0; i < params.orderIds.length; i++) {       
@@ -148,15 +146,11 @@ contract PayerV3 {
         for (uint256 i = 0; i < acceptableTokensArray.length; i++) {
             for (uint256 j = 0; j < acceptableTokensArray.length; j++) {
                 if(swapsIn[acceptableTokensArray[i]][acceptableTokensArray[j]]>0){
-                    //console.log("::SWAP");
-                    //console.log("::TOKEN IN");
-                    //console.log(acceptableTokensArray[i]);
-                    //console.log("::TOKEN OUT");
-                    //console.log(acceptableTokensArray[j]);
-                    //console.log("::AMOUNT IN");
-                    //console.log(swapsIn[acceptableTokensArray[i]][acceptableTokensArray[j]]);
-                    //console.log("::CONTRACT TOKEN BALANCE");
-                    //console.log(getTokenBalance(IERC20(acceptableTokensArray[i])));
+                    console.log("::SWAP");
+                    console.log("::TOKEN IN", acceptableTokensArray[i]);
+                    console.log("::TOKEN OUT", acceptableTokensArray[j]);
+                    console.log("::AMOUNT IN", swapsIn[acceptableTokensArray[i]][acceptableTokensArray[j]]);
+                    console.log("::CONTRACT TOKEN BALANCE", getTokenBalance(IERC20(acceptableTokensArray[i])));
 
                     ISwapRouter.ExactInputSingleParams memory swapParams = ISwapRouter
                         .ExactInputSingleParams({
@@ -166,16 +160,15 @@ contract PayerV3 {
                             recipient: address(this),
                             deadline: block.timestamp + swapDeadline,
                             amountIn: swapsIn[acceptableTokensArray[i]][acceptableTokensArray[j]],
-                            amountOutMinimum: 0, 
+                            amountOutMinimum: amountOutMinimum[swapsCount], 
                             sqrtPriceLimitX96: 0 
                         });
 
                     uint256 amountOut = swapRouter.exactInputSingle(swapParams);
-                    //console.log("::AMOUNT OUT");
-                    //console.log(amountOut);
-                    swapsOut[acceptableTokensArray[i]][acceptableTokensArray[j]] = amountOut;
-                    
-                    swapsCount++;// TODO
+                    console.log("::AMOUNT OUT", amountOut);
+                    require(amountOut > amountOutMinimum[swapsCount], "INCORRECT AMOUNT OUT");
+                    swapsOut[acceptableTokensArray[i]][acceptableTokensArray[j]] = amountOut;                    
+                    swapsCount++;
                 }
             }
         }
@@ -186,7 +179,7 @@ contract PayerV3 {
         }
         for (uint256 i = 0; i < acceptableTokensArray.length; i++) {
             for (uint256 j = 0; j < acceptableTokensArray.length; j++) {
-                swapsIn[acceptableTokensArray[i]][acceptableTokensArray[j]] = 0; //! CHECK IT
+                swapsIn[acceptableTokensArray[i]][acceptableTokensArray[j]] = 0; 
             }
         }
     }
@@ -213,15 +206,15 @@ contract PayerV3 {
                 //console.log("::IS USD", isUsdToken[address(order.tokenIn)]);
                 
                 if(isUsdToken[address(order.tokenIn)]){ // 
-                    //console.log("::PRICE", order.price);
-                    //console.log("::CALC", order.amountIn * 10 ** order.tokenOut.decimals() / order.price );
-                    remainder = swapAmountOut - order.amountIn * 10 ** order.tokenOut.decimals() / order.price;                     
+                    console.log("::PRICE", order.price);
+                    console.log("::CALC", order.amountIn * 10 ** order.tokenOut.decimals() / order.price );
+                    remainder = swapAmountOut - order.amountIn * 10 ** order.tokenOut.decimals() / order.price;
+                    require(order.additionalAmount < calculatePercentage(order.amountIn, maxAdditionalAmountPercentage), "WRONG ADDITIONAL AMOUNT");
                 }else{                    
                     //console.log("::PRICE", order.price);
                     //console.log("::CALC", order.amountIn * order.price / 10 ** order.tokenIn.decimals() );
                     remainder = swapAmountOut - order.amountIn * order.price / 10 ** order.tokenIn.decimals();
-                    //! TODO
-                    //require(order.additionalAmount < calculatePercentage(swapAmountOut.sub(remainder), maxAdditionalAmountPercentage), "WRONG ADDITIONAL AMOUNT");
+                    require(order.additionalAmount < calculatePercentage(swapAmountOut.sub(remainder), maxAdditionalAmountPercentage), "WRONG ADDITIONAL AMOUNT");
                 }
                 //console.log("::REMAINDER", remainder);
                 order.amountOut = swapAmountOut.sub(remainder);
@@ -243,10 +236,7 @@ contract PayerV3 {
         uint256 _total,
         uint256 _accuracy
     ) public pure returns (uint256) {
-        return _quantity.mul(_accuracy).div(_total);// ! CHECK 1e10
-    }
-    function testEncode(ExecuteOrderParams calldata input) public pure returns (bytes memory) {//!DELETE
-        return abi.encode(input);
+        return _quantity.mul(_accuracy).div(_total);
     }
 
     function claimOrder(
