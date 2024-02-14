@@ -120,6 +120,7 @@ async function getSwapsOutMinimal(payer, args, prices, tokensV3) {
     orderIds: args[0],
     swap: args[1],
     additionalAmount: args[2],
+    swapMinimal: [],
   };
 
   if (
@@ -132,7 +133,6 @@ async function getSwapsOutMinimal(payer, args, prices, tokensV3) {
     log(`[swap] Token price ${symbol}: ${price}`, 'blue');
   }
 
-  // TODO Поделка дошкольника
   for (let i = 0; i < acceptableTokensArray.length; i++) {
     for (let j = 0; j < acceptableTokensArray.length; j++) {
       if (acceptableTokensArray[i] === acceptableTokensArray[j]) continue;
@@ -147,23 +147,14 @@ async function getSwapsOutMinimal(payer, args, prices, tokensV3) {
       swapsOut[acceptableTokensArray[i]][acceptableTokensArray[j]] = 0;
     }
   }
-  // TODO
 
   for (let i = 0; i < params.orderIds.length; i++) {
     if (params.swap[i]) {
       const order = await getOrder(payer, params.orderIds[i]);
       // require(block.timestamp >= order.endTimestamp, "WRONG EXPIRATION TIME");
-      if (!swapsIn[order.tokenIn]) {
-        swapsIn[order.tokenIn] = {};
-        swapsIn[order.tokenIn][order.tokenOut] = parseFloat(
-          cToken(order.amountIn, tokensV3[order.tokenIn])
-        );
-      } else {
-        swapsIn[order.tokenIn][order.tokenOut] =
-          swapsIn[order.tokenIn][order.tokenOut] +
-          parseFloat(cToken(order.amountIn, tokensV3[order.tokenIn]));
-      }
-      // TODO Поделка дошкольника
+      swapsIn[order.tokenIn][order.tokenOut] =
+        swapsIn[order.tokenIn][order.tokenOut] +
+        parseFloat(cToken(order.amountIn, tokensV3[order.tokenIn]));
       const isUsd = await payer.isUsdToken(order.tokenIn);
       if (isUsd) {
         swapsOut[order.tokenIn][order.tokenOut] =
@@ -176,7 +167,6 @@ async function getSwapsOutMinimal(payer, args, prices, tokensV3) {
           parseFloat(cToken(order.amountIn, tokensV3[order.tokenIn])) *
             prices[tokensV3[order.tokenIn]];
       }
-      // TODO
     }
   }
   log(``, 'blue', true);
@@ -195,7 +185,7 @@ async function getSwapsOutMinimal(payer, args, prices, tokensV3) {
       log(`[swap][out] Token out ${tokensV3[tokenOut]}: ${amount}`, 'blue');
     }
   }
-  // TODO Поделка дошкольника
+
   for (let i = 0; i < acceptableTokensArray.length; i++) {
     for (let j = 0; j < acceptableTokensArray.length; j++) {
       if (swapsOut[acceptableTokensArray[i]][acceptableTokensArray[j]] > 0) {
@@ -209,7 +199,7 @@ async function getSwapsOutMinimal(payer, args, prices, tokensV3) {
       }
     }
   }
-  // TODO
+
   log(``, 'blue', true);
   log(`[swap] Exact out after infelicity`, 'blue', true);
   for (const [tokenIn, tokensOut] of Object.entries(swapsOutMinimal)) {
@@ -219,6 +209,7 @@ async function getSwapsOutMinimal(payer, args, prices, tokensV3) {
     }
   }
   let swapsCount = 0;
+  const result = [];
   for (let i = 0; i < acceptableTokensArray.length; i++) {
     for (let j = 0; j < acceptableTokensArray.length; j++) {
       if (swapsIn[acceptableTokensArray[i]][acceptableTokensArray[j]] > 0) {
@@ -230,6 +221,7 @@ async function getSwapsOutMinimal(payer, args, prices, tokensV3) {
           swapsOut[acceptableTokensArray[i]][acceptableTokensArray[j]];
         const amountOutMinimum =
           swapsOutMinimal[acceptableTokensArray[i]][acceptableTokensArray[j]];
+        result.push(sToken(amountOutMinimum, tokensV3[tokenOut]));
         log(``, 'blue', true);
         log(
           `[swap][${tokensV3[tokenIn]} -> ${tokensV3[tokenOut]}] Amount in: ${amountIn} | Amount out desired: ${amountOutDesired} | Amount out minimum: ${amountOutMinimum}`,
@@ -248,7 +240,8 @@ async function getSwapsOutMinimal(payer, args, prices, tokensV3) {
       }
     }
   }
-  return swapsOutMinimal;
+
+  return result;
 }
 
 module.exports = {

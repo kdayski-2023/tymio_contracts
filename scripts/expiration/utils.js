@@ -73,13 +73,7 @@ function wait(seconds) {
 
 function roudToDecimals(target, decimals = 2) {
   if (!target || target === '0') return 0;
-  const rounded = String(
-    parseFloat(target).toFixed(
-      Math.max(-Math.log10(target) + decimals, decimals + 1)
-    )
-  );
-  if (rounded.length > 2 + decimals)
-    return parseFloat(rounded.substring(0, rounded.length - 1));
+  const rounded = parseFloat(target).toFixed(decimals);
   return parseFloat(rounded);
 }
 

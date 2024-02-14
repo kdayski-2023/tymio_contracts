@@ -92,7 +92,7 @@ contract PayerV3 {
         uint256 _duration
     )public payable{
         depositEth();
-        makeOrder(wethAddress, _tokenAddressOut, _amount, _price, _duration);
+        makeOrder(IWETH9(wethAddress), _tokenAddressOut, _amount, _price, _duration);
     }
     function makeOrder(
         IERC20 _tokenAddressIn,

@@ -4,6 +4,7 @@ const {
   convertFloatToBnString,
   sToken,
   wait,
+  roudToDecimals,
 } = require('./utils');
 const { tokensV1, DECIMALS } = require('./contants');
 const { getSwapsOutMinimal } = require('./contract');
@@ -111,7 +112,6 @@ async function postOrders(payer, expiration, tokensV3) {
       const direction = order.direction === 'sell' ? 'продажу' : 'покупку';
 
       if (tokenInSymbol === 'ETH') {
-        const _tokenAddressIn = tokensV3['WETH'].address;
         const _tokenAddressOut = tokensV3['USDC'].address;
         const _amount = sToken(amountIn, 'WETH');
         const _price = sToken(price, 'USDC');
@@ -120,14 +120,9 @@ async function postOrders(payer, expiration, tokensV3) {
 
         tx = await payer
           .connect(signer)
-          .depositEthAndOrder(
-            _tokenAddressIn,
-            _tokenAddressOut,
-            _amount,
-            _price,
-            _duration,
-            { value }
-          );
+          .depositEthAndOrder(_tokenAddressOut, _amount, _price, _duration, {
+            value,
+          });
         tx = await tx.wait();
       } else {
         const token = tokensV3[tokenInSymbol];
@@ -191,7 +186,7 @@ async function executeOrders(payer, expiration, tokensV3) {
       `[contract][info] Swap amount out USDC: ${swapAmount.USDC} | ETH: ${swapAmount.ETH} | WBTC: ${swapAmount.WBTC}`,
       'blue'
     );
-    tx = await payer.executeOrders(args, []);
+    tx = await payer.executeOrders(args, swapOutMinimal);
     tx = await tx.wait();
     log('✔ [contract] Сделки исполнены', 'green');
   } catch (e) {

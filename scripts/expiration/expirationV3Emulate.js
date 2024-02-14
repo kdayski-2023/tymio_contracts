@@ -55,8 +55,8 @@ async function main() {
   let errors = 0;
   let expirationId = 0;
 
-  const expirationsCopy = expirations;
-  // expirations.slice(
+  let expirationsCopy = expirations;
+  // expirationsCopy = expirations.slice(
   //   expirations.length - 10,
   //   expirations.length - 9
   // );
@@ -83,36 +83,36 @@ async function main() {
 
       expiration = await postOrders(payer, expiration, tokensV3);
       await executeOrders(payer, expiration, tokensV3);
-      // await claimOrders(payer, expiration, tokensV3);
+      await claimOrders(payer, expiration, tokensV3);
 
-      // const expirationUsers = expiration.orders.map(
-      //   ({ user, signer, tokenOut }) => ({
-      //     user,
-      //     signer,
-      //     tokenOut,
-      //   })
-      // );
-      // await checkContractBalances(payer, expiration.orders, tokensV3);
-      // await fillWithdrawal(payer, expirationUsers, tokensV3);
-      // await checkEmptyBalance(payer, expirationUsers, tokensV3);
+      const expirationUsers = expiration.orders.map(
+        ({ user, signer, tokenOut }) => ({
+          user,
+          signer,
+          tokenOut,
+        })
+      );
+      await checkContractBalances(payer, expiration.orders, tokensV3);
+      await fillWithdrawal(payer, expirationUsers, tokensV3);
+      await checkEmptyBalance(payer, expirationUsers, tokensV3);
 
-      // const balanceUsdc = cToken(
-      //   await payer.getTokenBalance(tokensV3['USDC'].address),
-      //   ['USDC']
-      // );
-      // const balanceEth = cToken(await payer.getEthBalance());
-      // const balanceWeth = cToken(
-      //   await payer.getTokenBalance(tokensV3['WETH'].address),
-      //   ['WETH']
-      // );
-      // const balanceWbtc = cToken(
-      //   await payer.getTokenBalance(tokensV3['WBTC'].address),
-      //   ['WBTC']
-      // );
-      // log(
-      //   `✔ [contract][service] Баланс после вывода USDC: ${balanceUsdc} | WBTC: ${balanceWbtc} | WETH: ${balanceWeth} | ETH: ${balanceEth}`,
-      //   'blue'
-      // );
+      const balanceUsdc = cToken(
+        await payer.getTokenBalance(tokensV3['USDC'].address),
+        ['USDC']
+      );
+      const balanceEth = cToken(await payer.getEthBalance());
+      const balanceWeth = cToken(
+        await payer.getTokenBalance(tokensV3['WETH'].address),
+        ['WETH']
+      );
+      const balanceWbtc = cToken(
+        await payer.getTokenBalance(tokensV3['WBTC'].address),
+        ['WBTC']
+      );
+      log(
+        `✔ [contract][service] Баланс после вывода USDC: ${balanceUsdc} | WBTC: ${balanceWbtc} | WETH: ${balanceWeth} | ETH: ${balanceEth}`,
+        'blue'
+      );
 
       // if (
       //   parseFloat(balanceUsdc) > 0 ||
