@@ -6,7 +6,7 @@ const {
   wait,
 } = require('./utils');
 const { tokensV1, DECIMALS } = require('./contants');
-const { checkContractBalances } = require('./ethers');
+const { getSwapsOutMinimal } = require('./contract');
 
 function getAdditionalAmount(expiration) {
   try {
@@ -181,8 +181,14 @@ async function executeOrders(payer, expiration, tokensV3) {
           swapAmount[order.targetTokenSymbolOut] + order.amountOut;
       }
     }
+    const swapOutMinimal = await getSwapsOutMinimal(
+      payer,
+      args,
+      expiration.prices,
+      tokensV3
+    );
     log(
-      `✔ [contract][info] Swap amount out USDC: ${swapAmount.USDC} | ETH: ${swapAmount.ETH} | WBTC: ${swapAmount.WBTC}`,
+      `[contract][info] Swap amount out USDC: ${swapAmount.USDC} | ETH: ${swapAmount.ETH} | WBTC: ${swapAmount.WBTC}`,
       'blue'
     );
     tx = await payer.executeOrders(args, []);
