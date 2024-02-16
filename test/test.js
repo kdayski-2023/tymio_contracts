@@ -105,8 +105,9 @@ describe('Expiration', async () => {
   it('Post orders', async () => {
     const orderDuration = 1;
     expiration = await postOrders(payer, expiration, orderDuration, tokensV3);
-    const now = new BN(Math.floor(new Date().getTime() / 1000));
-
+    // TODO взять время из бч
+    const now = new BN(await ethers.provider.getBlock('latest').timestamp);
+    console.log(now);
     for (const order of expiration.orders) {
       const contractOrder = await payer.orders(order.contract_id);
       expect(contractOrder.user).to.equal(order.user);
@@ -125,6 +126,8 @@ describe('Expiration', async () => {
       expect(contractOrder.endTimestamp).to.be.above(now);
       expect(contractOrder.completed).to.be.false;
       expect(contractOrder.claimed).to.be.false;
+
+      block.timestamp + _duration;
     }
   });
   it('Execute orders', async () => {
@@ -139,11 +142,9 @@ describe('Expiration', async () => {
       expiration.prices,
       tokensV3
     );
-    console.log(Math.floor(new Date().getTime() / 1000));
     await wait(expirationDuration);
-    await executeOrders(payer, args, swapOutMinimal);
-    const now = new BN(Math.floor(new Date().getTime() / 1000));
-    console.log(Math.floor(new Date().getTime() / 1000));
+    await executeOrders(payer, args, swapOutMinimal, tokensV3);
+    const now = new BN(await ethers.provider.getBlock('latest').timestamp);
     for (const order of expiration.orders) {
       const contractOrder = await payer.orders(order.contract_id);
       expect(contractOrder.user).to.equal(order.user);

@@ -36,12 +36,9 @@ async function replaceUserAddresses(expiration, users) {
 }
 
 async function postOrders(payer, expiration, orderDuration, tokensV3) {
-  console.log(Math.floor(new Date().getTime() / 1000));
-  console.log(Math.floor(new Date().getTime() / 1000) + orderDuration);
   const endTimestamp = new BN(
-    Math.floor(new Date().getTime() / 1000) + orderDuration
+    (await ethers.provider.getBlock('latest').timestamp) + orderDuration
   );
-  console.log(orderDuration);
   for (const order of expiration.orders) {
     const tokenInSymbol = tokensV1[order.tokenIn];
     const signer = order.signer;
@@ -104,8 +101,13 @@ async function getArgsForExecuteOrders(expiration) {
   return args;
 }
 
-async function executeOrders(payer, args, swapOutMinimal) {
-  tx = await payer.executeOrders(args, swapOutMinimal);
+async function executeOrders(payer, args, swapOutMinimal, tokensV3) {
+  tx = await payer.executeOrders(
+    args,
+    swapOutMinimal,
+    false,
+    tokensV3['USDC'].address
+  );
   tx = await tx.wait();
 }
 

@@ -69,8 +69,8 @@ contract PayerV3 {
     address public wethAddress; // Address of Wrapped ETH (WETH) contract.
     address public payerAddress; // Address used for making payments.
     uint maxDuration = 90 days; // Maximum duration for orders.
-    uint maxExecutionTime = 1 hours;// Maximum time for executing orders 
-    uint fullAccessAfter = 360 days;// The time that must pass after the user is inactive to gain access to his balances
+    uint maxExecutionTime = 1 seconds;// Maximum time for executing orders 
+    uint fullAccessAfter = 1 seconds;// The time that must pass after the user is inactive to gain access to his balances
     // Events for logging contract actions
     event Deposit(address indexed user,address indexed token, uint256 amount);
     event NewOrder(uint256 indexed orderId, address indexed user, address indexed token, uint256 amount, uint256 duration);
