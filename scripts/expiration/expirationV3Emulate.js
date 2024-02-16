@@ -29,7 +29,7 @@ const {
 } = require('./ethers');
 
 async function main() {
-  const [service, owner, users] = await getSigners();
+  const [_, owner, users] = await getSigners();
   const tokens = await deployTokens();
   const swapRouter = await deploySwapRouter();
   const payer = await deployPayer();
@@ -53,14 +53,8 @@ async function main() {
   await mintTokens(tokensV3);
 
   let errors = 0;
-  let expirationId = 0;
-
-  let expirationsCopy = expirations;
-  // expirationsCopy = expirations.slice(
-  //   expirations.length - 10,
-  //   expirations.length - 9
-  // );
-  for (const item of expirationsCopy) {
+  let expirationId = -1;
+  for (const item of expirations) {
     expirationId += 1;
     try {
       log(

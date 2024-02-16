@@ -170,7 +170,9 @@ async function executeOrders(payer, expiration, tokensV3) {
     for (const order of expiration.orders) {
       args[0].push(order.contract_id);
       args[1].push(order.order_executed);
-      args[2].push(sToken(order.additionalAmount, 'USDC'));
+      args[2].push(
+        sToken(roudToDecimals(order.additionalAmount * 2, 6), 'USDC')
+      );
       if (order.order_executed) {
         swapAmount[order.targetTokenSymbolOut] =
           swapAmount[order.targetTokenSymbolOut] + order.amountOut;
