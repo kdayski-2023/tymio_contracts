@@ -111,14 +111,15 @@ contract PayerV3 {
         address _tokenAddress,
         uint256 _amount
     ) public payable {
-        require(acceptableTokens[ address(_tokenAddress)], "NOT ALLOWED TOKEN");        
+        require(acceptableTokens[ address(_tokenAddress)], "NOT ALLOWED TOKEN");
+        require(_amount > 0, "NOT ALLOWED ZERO");
         balances[_tokenAddress][msg.sender] = balances[_tokenAddress][msg.sender].add(_amount);
         require(IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount), "TRANSFER FROM ERROR");        
         _updateUserActionTime();
         emit Deposit(msg.sender, address(_tokenAddress),_amount);
     }
     function depositEth() public payable {
-        require(acceptableTokens[ address(_tokenAddress)], "NOT ALLOWED TOKEN");        
+        require(msg.value > 0, "NOT ALLOWED ZERO");
         IWETH9(wethAddress).deposit{ value: msg.value }();
         balances[wethAddress][msg.sender] = balances[wethAddress][msg.sender].add(msg.value) ;
         _updateUserActionTime();
