@@ -1,14 +1,27 @@
+const { expect } = require('chai');
 const { DECIMALS } = require('./contants');
 const { sToken, thowDotPart, cToken, roudToDecimals } = require('./utils');
 
-async function setSwapRouter(payer, swapRouter) {
-  tx = await payer.setSwapRouter(swapRouter.address);
+async function setSwapRouter(payer, users, swapRouter) {
+  const args = [swapRouter.address];
+  const user = users[0];
+  expect(payer.connect(user).setSwapRouter(...args)).to.be.revertedWith(
+    'NOT THE OWNERS'
+  );
+  tx = await payer.setSwapRouter(...args);
   await tx.wait();
+  expect(await payer.swapRouter()).to.equal(swapRouter.address);
 }
 
-async function setWeth(payer, tokens) {
-  tx = await payer.setWeth(tokens['WETH'].address);
+async function setWeth(payer, users, tokens) {
+  const args = [tokens['WETH'].address];
+  const user = users[0];
+  expect(payer.connect(user).setWeth(...args)).to.be.revertedWith(
+    'NOT THE OWNERS'
+  );
+  tx = await payer.setWeth(...args);
   await tx.wait();
+  expect(await payer.wethAddress()).to.equal(tokens['WETH'].address);
 }
 
 async function setAcceptableTokens(payer, tokens) {
@@ -18,6 +31,9 @@ async function setAcceptableTokens(payer, tokens) {
   await tx.wait();
   tx = await payer.editAcceptableToken(tokens['WBTC'].address, true, false);
   await tx.wait();
+  expect(await payer.acceptableTokensArray(0)).to.equal(tokens['USDC'].address);
+  expect(await payer.acceptableTokensArray(1)).to.equal(tokens['WETH'].address);
+  expect(await payer.acceptableTokensArray(2)).to.equal(tokens['WBTC'].address);
 }
 
 async function setPayerAddress(payer, payerAddress) {

@@ -1,8 +1,10 @@
+const hre = require('hardhat');
+const { expect } = require('chai');
 const { sToken, cToken, convertFloatToBnString } = require('./utils');
 const { DECIMALS, tokensV1 } = require('./contants');
 
 async function getSigners() {
-  const accounts = await ethers.getSigners();
+  const accounts = await hre.ethers.getSigners();
   const service = accounts[0];
   const owner = accounts[1];
   const users = [];
@@ -86,16 +88,17 @@ async function compareBalanceUsdc(
 
 async function checkEmptyBalances(payer, expiration, tokensV3) {
   for (const order of expiration.orders) {
+    const user = order.user;
     const balanceUsdc = cToken(
-      await payer.balanceOf(tokensV3['USDC'].address, order.user),
+      await payer.balanceOf(tokensV3['USDC'].address, user),
       ['USDC']
     );
     const balanceWeth = cToken(
-      await payer.balanceOf(tokensV3['WETH'].address, order.user),
+      await payer.balanceOf(tokensV3['WETH'].address, user),
       ['WETH']
     );
     const balanceWbtc = cToken(
-      await payer.balanceOf(tokensV3['WBTC'].address, order.user),
+      await payer.balanceOf(tokensV3['WBTC'].address, user),
       ['WBTC']
     );
     expect(parseFloat(balanceUsdc)).to.equal(0);
@@ -168,7 +171,6 @@ async function checkContractBalances(payer, expiration, tokensV3) {
 }
 
 async function mintTokens(accounts, tokensV3) {
-  accounts = [accounts[0], accounts[1], ...accounts[2]];
   for (const account of accounts) {
     tx = await tokensV3['USDC'].mint(account.address, sToken(1000000, 'USDC'));
     await tx.wait();

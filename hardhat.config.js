@@ -1,3 +1,4 @@
+require('solidity-coverage');
 require('@nomicfoundation/hardhat-toolbox');
 require('@nomicfoundation/hardhat-chai-matchers');
 require('@nomiclabs/hardhat-etherscan');

@@ -1,4 +1,3 @@
-const BN = web3.utils.BN;
 const { cToken, convertFloatToBnString, sToken } = require('./utils');
 const { tokensV1, DECIMALS } = require('./contants');
 
@@ -36,9 +35,6 @@ async function replaceUserAddresses(expiration, users) {
 }
 
 async function postOrders(payer, expiration, orderDuration, tokensV3) {
-  const endTimestamp = new BN(
-    (await ethers.provider.getBlock('latest').timestamp) + orderDuration
-  );
   for (const order of expiration.orders) {
     const tokenInSymbol = tokensV1[order.tokenIn];
     const signer = order.signer;
@@ -46,14 +42,12 @@ async function postOrders(payer, expiration, orderDuration, tokensV3) {
     const price = order.price;
     const payerAddress = payer.address;
     const targetTokenSymbolOut = order.targetTokenSymbolOut;
-
     if (tokenInSymbol === 'ETH') {
       const _tokenAddressOut = tokensV3['USDC'].address;
       const _amount = sToken(amountIn, 'WETH');
       const _price = sToken(price, 'USDC');
       const _duration = orderDuration;
       const value = sToken(amountIn, 'ETH');
-
       tx = await payer
         .connect(signer)
         .depositEthAndOrder(_tokenAddressOut, _amount, _price, _duration, {
@@ -84,10 +78,18 @@ async function postOrders(payer, expiration, orderDuration, tokensV3) {
     for (const event of tx.events) {
       if (event.event === 'NewOrder') {
         order.contract_id = event.args.orderId.toString();
-        order.endTimestamp = endTimestamp;
+        order.endTimestamp = new Date().getTime() / 1000 + orderDuration;
       }
     }
   }
+
+  const id = expiration.orders[expiration.orders.length - 1].contract_id;
+  const user = expiration.orders[expiration.orders.length - 1].signer;
+  const claimTokenAddress = tokensV3['USDC'].address;
+  const args = [id, claimTokenAddress, false];
+  expect(payer.connect(user).claimOrder(...args)).to.be.revertedWith(
+    'ORDER NOT COMPLETED'
+  );
   return expiration;
 }
 
@@ -101,25 +103,41 @@ async function getArgsForExecuteOrders(expiration) {
   return args;
 }
 
-async function executeOrders(payer, args, swapOutMinimal, tokensV3) {
+async function executeOrders(
+  payer,
+  args,
+  swapOutMinimal,
+  claimOrders,
+  tokensV3
+) {
   tx = await payer.executeOrders(
     args,
     swapOutMinimal,
-    false,
+    claimOrders,
     tokensV3['USDC'].address
   );
   tx = await tx.wait();
 }
 
 async function claimOrders(payer, expiration, tokensV3) {
+  const id = 0;
+  const user = expiration.orders[0].signer;
+  let claimTokenAddress = tokensV3['WBTC'].address;
+  const args = [id, claimTokenAddress, false];
+  expect(
+    payer.connect(user).claimOrder(id, claimTokenAddress, false)
+  ).to.be.revertedWith('IS NOT USD TOKEN');
   for (const order of expiration.orders) {
     const id = order.contract_id;
     const user = order.signer;
     const claimTokenAddress = tokensV3['USDC'].address;
-    tx = await payer.orders(id);
+    expect(user.address).to.equal(order.user);
     tx = await payer.connect(user).claimOrder(id, claimTokenAddress, false);
     tx = await tx.wait();
   }
+  expect(payer.connect(user).claimOrder(...args)).to.be.revertedWith(
+    'ORDER ALREADY CLAIMED'
+  );
 }
 
 async function fullWithdrawal(payer, expiration, tokensV3) {
@@ -145,6 +163,16 @@ async function fullWithdrawal(payer, expiration, tokensV3) {
       tx = await tx.wait();
     }
   }
+
+  const user = expiration.orders[0].signer;
+  let args = [sToken(1, 'ETH')];
+  expect(payer.connect(user).fullWithdrawalETH(...args)).to.be.revertedWith(
+    'NOT ENOUGH WETH TOKENS ON THE BALANCE'
+  );
+  args = [usdcAddress, sToken(1, 'USDC')];
+  expect(payer.connect(user).fullWithdrawal(...args)).to.be.revertedWith(
+    'NOT ENOUGH TOKENS ON THE BALANCE'
+  );
 }
 
 module.exports = {

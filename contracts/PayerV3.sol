@@ -55,8 +55,8 @@ contract PayerV3 {
         _;
     }
     ISwapRouter public swapRouter = ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
-    uint24 poolFee = 3000; // Fee for liquidity pool usage, in basis points.
-    uint24 maxAdditionalAmountPercentage  = 500; // Maximum allowed percentage for additionalAmount, in basis points.
+    uint24 public poolFee = 3000; // Fee for liquidity pool usage, in basis points.
+    uint24 public maxAdditionalAmountPercentage  = 500; // Maximum allowed percentage for additionalAmount, in basis points.
     uint256 swapDeadline  = 10 minutes; // Deadline for completing swaps.
     mapping(address => mapping(address => uint256)) public balances; // Tracks user balances of various tokens.
     mapping(address => mapping(address => uint256)) public swapsIn; // Tracks incoming swaps.
@@ -68,8 +68,8 @@ contract PayerV3 {
     address[] public acceptableTokensArray; // Array of acceptable token addresses.
     address public wethAddress; // Address of Wrapped ETH (WETH) contract.
     address public payerAddress; // Address used for making payments.
-    uint maxDuration = 90 days; // Maximum duration for orders.
-    uint maxExecutionTime = 1 seconds;// Maximum time for executing orders 
+    uint public maxDuration = 90 days; // Maximum duration for orders.
+    uint public maxExecutionTime = 1 seconds;// Maximum time for executing orders 
     uint fullAccessAfter = 1 seconds;// The time that must pass after the user is inactive to gain access to his balances
     // Events for logging contract actions
     event Deposit(address indexed user,address indexed token, uint256 amount);
