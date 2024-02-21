@@ -70,7 +70,7 @@ contract PayerV3 {
     address public payerAddress; // Address used for making payments.
     uint public maxDuration = 90 days; // Maximum duration for orders.
     uint public maxExecutionTime = 1 seconds;// Maximum time for executing orders 
-    uint fullAccessAfter = 1 seconds;// The time that must pass after the user is inactive to gain access to his balances
+    uint public fullAccessAfter = 5 seconds;// The time that must pass after the user is inactive to gain access to his balances
     // Events for logging contract actions
     event Deposit(address indexed user,address indexed token, uint256 amount);
     event NewOrder(uint256 indexed orderId, address indexed user, address indexed token, uint256 amount, uint256 duration);
@@ -222,7 +222,7 @@ contract PayerV3 {
                 if(isUsdToken[order.tokenIn]){ 
                     remainder = swapAmountOut - order.amountIn * 10 ** IERC20(order.tokenOut).decimals() / order.price;
                     require(order.additionalAmount < calculatePercentage(order.amountIn, maxAdditionalAmountPercentage), "WRONG ADDITIONAL AMOUNT");
-                }else{                    
+                }else{                
                     remainder = swapAmountOut - order.amountIn * order.price / 10 ** IERC20(order.tokenIn).decimals();
                     require(order.additionalAmount < calculatePercentage(swapAmountOut.sub(remainder), maxAdditionalAmountPercentage), "WRONG ADDITIONAL AMOUNT");
                 }

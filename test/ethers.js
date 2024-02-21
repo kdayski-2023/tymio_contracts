@@ -7,11 +7,12 @@ async function getSigners() {
   const accounts = await hre.ethers.getSigners();
   const service = accounts[0];
   const owner = accounts[1];
+  const owner2 = accounts[2];
   const users = [];
-  for (let i = 2; i < accounts.length; i++) {
+  for (let i = 3; i < accounts.length; i++) {
     users.push(accounts[i]);
   }
-  return [service, owner, users];
+  return [service, owner, owner2, users];
 }
 
 async function deployTokens() {

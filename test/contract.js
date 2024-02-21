@@ -36,11 +36,6 @@ async function setAcceptableTokens(payer, tokens) {
   expect(await payer.acceptableTokensArray(2)).to.equal(tokens['WBTC'].address);
 }
 
-async function setPayerAddress(payer, payerAddress) {
-  tx = await payer.setPayerAddress(payerAddress);
-  tx = await tx.wait();
-}
-
 async function setRatio(swapRouter, tokens, prices) {
   const usdWbtcPrice = thowDotPart(sToken(1, 'WBTC') / prices['WBTC']);
   const wbtcUsdPrice = sToken(prices['WBTC'], 'USD');
@@ -161,7 +156,6 @@ async function getSwapsOutMinimal(payer, args, prices, tokensV3) {
       }
     }
   }
-
   let swapsCount = 0;
   const result = [];
   for (let i = 0; i < acceptableTokensArray.length; i++) {
@@ -196,7 +190,6 @@ module.exports = {
   setAcceptableTokens,
   setSwapRouter,
   setWeth,
-  setPayerAddress,
   getAcceptableTokens,
   getSwapsOutMinimal,
 };
