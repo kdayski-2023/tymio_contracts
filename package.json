@@ -1,5 +1,5 @@
 {
-  "name": "perfect-game-api",
+  "name": "tymio_contracts",
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.5",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.7",
@@ -28,7 +28,8 @@
     "web3": "^1.8.1"
   },
   "dependencies": {
-    "@uniswap/v3-sdk": "^3.10.0",
+    "@openzeppelin/contracts": "^5.0.2",
+    "@uniswap/v3-sdk": "^3.11.0",
     "bn.js": "^5.2.1",
     "colors": "^1.4.0",
     "hardhat": "^2.17.2",
