@@ -67,7 +67,7 @@ contract PayerV3 {
         _;
     }
     ISwapRouter public constant swapRouter =
-        ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564); // Uniswap swap router
+        ISwapRouter(0x8dC401386CDaE78D429daA6489a75644e0C12339); // Uniswap swap router
     uint24 public poolFee = 3000; // Fee for liquidity pool usage, in basis points.
     uint24 public constant maxAdditionalAmountPercentage = 750; // Maximum allowed percentage for additionalAmount, in basis points.
     uint256 public acceptableTokensArrayLength; // Array length of acceptable token addresses.
@@ -82,7 +82,7 @@ contract PayerV3 {
     mapping(address => uint256) public minimalTokenAmounts; // Tracks minimal token amounts.
     address[] public acceptableTokensArray; // Array of acceptable token addresses.
     address public constant wethAddress =
-        0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2; // Address of Wrapped ETH (WETH) contract.
+        0x5fB5A074a7504C37159E903Ecf412EEbeec231A9; // Address of Wrapped ETH (WETH) contract.
     address public payerAddress; // Address used for making payments.
     uint public constant maxDuration = 90 days; // Maximum duration for orders.
     uint public constant maxExecutionTime = 1 hours; // Maximum time for executing orders

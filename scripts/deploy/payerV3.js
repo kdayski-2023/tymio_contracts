@@ -1,5 +1,4 @@
-const deployDevContracts = true //сначала деплоим токены и роутер
-const deployPayer = false // деплоим только PayerV3
+const stage = 2 //сначала деплоим токены и роутер = 1 , payer = 2
 const BN = require('bn.js');
 
 const log = (...args) => {
@@ -31,7 +30,7 @@ async function main() {
   const ethUsdPrice = 2363590000; // цена 1 eth к usd
   const usdEthPrice = 4200000000000000; // цена 1 usd к eth
   log(`${ownerAddress}: owner`);
-  if (deployDevContracts) {
+  if (stage == 1) {
     const Usdc = await hre.ethers.getContractFactory('ERC20')
     let usdc = await Usdc.deploy("USDC", "USDC", 6)
     usdc = await usdc.deployed()
@@ -70,27 +69,39 @@ async function main() {
     const testSwapRouterAddress = testSwapRouter.address;
 
     log(`${testSwapRouterAddress}: testSwapRouter`);
+    console.log({
+      usdcAddress,
+      usdtAddress,
+      wbtcAddress,
+      wethAddress,
+      testSwapRouterAddress,
+    })
   }
 
-  if (deployPayer) {
+  if (stage == 2) {
+    const settings = {
+      usdcAddress: '0x1DDC824D3af1f7d6c13eE9307817111A75D04520',
+      usdtAddress: '0xc588e6a573E691650Ab01f6Cf01950a606eDB6b5',
+      wbtcAddress: '0x9b5AdC227a0213B6E1c05959BD46F8970Ca520C1',
+      wethAddress: '0x5fB5A074a7504C37159E903Ecf412EEbeec231A9',
+      testSwapRouterAddress: '0x8dC401386CDaE78D429daA6489a75644e0C12339'
+    }
+
     const Payer = await hre.ethers.getContractFactory('PayerV3');
     let payer = await Payer.deploy();
     payer = await payer.deployed();
     const payerAddress = payer.address;
     log(`${payerAddress}: PayerV3`);
+    tx = await payer.editAcceptableToken(settings.usdcAddress, true, true, "10000000");
+    await tx.wait();
+    tx = await payer.editAcceptableToken(settings.usdtAddress, true, true, "10000000");
+    await tx.wait();
+    tx = await payer.editAcceptableToken(settings.wethAddress, true, false, "2600000000000000");
+    await tx.wait();
+    tx = await payer.editAcceptableToken(settings.wbtcAddress, true, false, "14285");
+    await tx.wait();
   }
-  // tx = await payer.editAcceptableToken(usdcAddress, true, true);
-  // await tx.wait();
-  // tx = await payer.editAcceptableToken(usdtAddress, true, true);
-  // await tx.wait();
-  // tx = await payer.editAcceptableToken(wethAddress, true, false);
-  // await tx.wait();
-  // tx = await payer.editAcceptableToken(wbtcAddress, true, false);
-  // await tx.wait();
-  // tx = await payer.setWeth(wethAddress);
-  // await tx.wait();
-  // tx = await payer.setSwapRouter(testSwapRouterAddress);
-  // await tx.wait();
+
   log('All contract settings are set');
 }
 

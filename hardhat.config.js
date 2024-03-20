@@ -14,16 +14,8 @@ module.exports = {
   solidity: {
     compilers: [
       {
-        version: '0.7.5',
-        settings: { optimizer: { enabled: true, runs: 200 } },
-      },
-      {
-        version: '0.4.22',
-        settings: { optimizer: { enabled: true, runs: 200 } },
-      },
-      {
         version: '0.8.20',
-        settings: { optimizer: { enabled: true, runs: 200 } },
+        settings: { optimizer: { enabled: true, runs: 50000 } },
       },
     ],
   },
@@ -53,6 +45,13 @@ module.exports = {
       accounts: [DEPLOYER_PRIVATE_KEY],
       gas: 8e6,
       gasPrice: 5000000000,
+    },
+    arbsepolia: {
+      network_id: 421614,
+      url: 'https://arbitrum-sepolia.blockpi.network/v1/rpc/public ',
+      accounts: [DEPLOYER_PRIVATE_KEY],
+      gas: 8e6,
+      gasPrice: 1000000000,
     },
     rpc: {
       network_id: 14,
@@ -85,6 +84,7 @@ module.exports = {
       gasPrice: 9000000000,
       gas: 15e6,
     },
+
     goerli: {
       url: 'https://rpc.ankr.com/eth_goerli',
       accounts: [DEPLOYER_PRIVATE_KEY],
@@ -113,6 +113,17 @@ module.exports = {
       polygonMumbai: '82C8JFDCT4PH1791FHGVYK3INN2S5RJ1YC',
       bsc: 'GSYYDG6Z48HQ4ZC6K7XNBU9UTZI21GV38Y',
       bscTestnet: 'GSYYDG6Z48HQ4ZC6K7XNBU9UTZI21GV38Y',
+      arbsepolia: 'PZAWVZRJXA5AX3MIN9NPC4VATACGXK7YPN'
     },
-  },
+    customChains: [
+      {
+        network: "arbsepolia",
+        chainId: 421614,
+        urls: {
+          apiURL: "https://api-sepolia.arbiscan.io/api",
+          browserURL: "https://sepolia.arbiscan.io"
+        }
+      }
+    ]
+  }
 };
