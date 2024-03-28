@@ -32,10 +32,14 @@ Helper = {
   },
   IERC20: async (address) => {
     //! TODO нет метода forceApprove
-    // @openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20
-    // contracts/PayerV2.sol:IERC20
-    // contracts/tools/ReferralV3.sol:IERC20
-    return await ethers.getContractAt('ERC20', address);
+    return await ethers.getContractAt('@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20', address);
+  },
+  IERC20Metadata: async (address) => {
+    //! TODO нет метода forceApprove
+    return await ethers.getContractAt(
+      '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol:IERC20Metadata',
+      address
+    );
   },
   isAddress: (address) => {
     if (!/^(0x)?[0-9a-f]{40}$/i.test(address)) {

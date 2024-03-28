@@ -1,4 +1,4 @@
-const { filterTextKeys, getNetworkName, replaceAddresses, IERC20 } = require('../helpers/web3');
+const { filterTextKeys, getNetworkName, replaceAddresses, IERC20, IERC20Metadata } = require('../helpers/web3');
 const contractParamsAll = {
   1: { _params: [[], [], []], _amountOutMinimum: [], _claimOrders: false, _usdClaimToken: '' },
   42161: { _params: [[], [], []], _amountOutMinimum: [], _claimOrders: false, _usdClaimToken: '' },
@@ -13,7 +13,7 @@ const contractParamsAll = {
 const deployments = require('../../deployments');
 
 const bn = ethers.BigNumber.from;
-let payerV3, block, acceptableTokensArrayLength, networkName, ISwapRouter, poolFee, swapDeadline;
+let payerV3, block, acceptableTokensArrayLength, networkName, ISwapRouter, poolFee, swapDeadline, wethAddress;
 let swapsIn = {};
 let swapsOut = {};
 const acceptableTokensArray = [];
@@ -31,6 +31,7 @@ async function main() {
   //! TODO swapDeadline должен быть публичным
   //   swapDeadline = await payerV3.swapDeadline();
   swapDeadline = bn(10 * 60 * 1000);
+  wethAddress = await payerV3.wethAddress();
   console.log(`Network ${networkName}`);
   const contractParams = contractParamsAll[chainId];
   console.log(`Contract params:`);
@@ -145,7 +146,7 @@ async function emulateExecution(_params, _amountOutMinimum, _claimOrders, _usdCl
     }
   }
   for (let i = 0; i < orderIdsLength; i++) {
-    _executeOrder(_params.orderIds[i], _params.swap[i], _params.additionalAmount[i]);
+    await _executeOrder(_params.orderIds[i], _params.swap[i], _params.additionalAmount[i]);
   }
   if (_claimOrders) {
     for (let i = 0; i < orderIdsLength; i++) {
@@ -159,14 +160,68 @@ async function emulateExecution(_params, _amountOutMinimum, _claimOrders, _usdCl
   }
 }
 
-function _executeOrder(orderId, swap, additionalAmount) {
+async function _executeOrder(orderId, swap, additionalAmount) {
   // TODO
   console.log({ orderId, swap, additionalAmount });
+  const order = await payerV3.orders(orderId);
+  order.additionalAmount = additionalAmount;
+  order.completed = true;
+  if (swap) {
+    console.log(await (await IERC20Metadata(order.tokenOut)).decimals());
+    const accuracy =
+      wethAddress == order.tokenOut ? 1e10 : 10 ** (await (await IERC20Metadata(order.tokenOut)).decimals());
+    console.log(accuracy);
+    const proportionIn = calculateProportion(swapsIn[order.tokenIn][order.tokenOut], order.amountIn, accuracy);
+    const swapAmountOut = (swapsOut[order.tokenIn][order.tokenOut] * accuracy) / proportionIn;
+    console.log({ proportionIn, swapAmountOut });
+    let remainder;
+    // if (isUsdToken[order.tokenIn]) {
+    //     remainder =
+    //         swapAmountOut -
+    //         (order.amountIn *
+    //             10 ** IERC20Metadata(order.tokenOut).decimals()) /
+    //         order.price;
+    //     if (
+    //         !(order.additionalAmount <
+    //             calculatePercentage(
+    //                 order.amountIn,
+    //                 maxAdditionalAmountPercentage
+    //             ))
+    //     ) {
+    //         revert Errors.WrongAdditionalAmount();
+    //     }
+    // } else {
+    //     remainder =
+    //         swapAmountOut -
+    //         (order.amountIn * order.price) /
+    //         10 ** IERC20Metadata(order.tokenIn).decimals();
+    //     if (
+    //         !(order.additionalAmount <
+    //             calculatePercentage(
+    //                 swapAmountOut - remainder,
+    //                 maxAdditionalAmountPercentage
+    //             ))
+    //     ) {
+    //         revert Errors.WrongAdditionalAmount();
+    //     }
+    // }
+    // order.amountOut = swapAmountOut - remainder;
+    // balances[order.tokenOut][payerAddress] =
+    //     balances[order.tokenOut][payerAddress] +
+    //     remainder;
+  } else {
+    order.tokenOut = order.tokenIn;
+    order.amountOut = order.amountIn;
+  }
 }
 
 function claimOrder(_orderId, _usdToken, _force) {
   // TODO
   console.log({ _orderId, _usdToken, _force });
+}
+
+function calculateProportion(_quantity, _total, _accuracy) {
+  return (_quantity * _accuracy) / _total;
 }
 
 function revert(msg) {
