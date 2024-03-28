@@ -35,7 +35,6 @@ Helper = {
     return await ethers.getContractAt('@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20', address);
   },
   IERC20Metadata: async (address) => {
-    //! TODO нет метода forceApprove
     return await ethers.getContractAt(
       '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol:IERC20Metadata',
       address

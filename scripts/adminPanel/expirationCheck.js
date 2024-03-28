@@ -13,10 +13,20 @@ const contractParamsAll = {
 const deployments = require('../../deployments');
 
 const bn = ethers.BigNumber.from;
-let payerV3, block, acceptableTokensArrayLength, networkName, ISwapRouter, poolFee, swapDeadline, wethAddress;
-let swapsIn = {};
-let swapsOut = {};
+let payerV3,
+  block,
+  acceptableTokensArrayLength,
+  networkName,
+  ISwapRouter,
+  poolFee,
+  swapDeadline,
+  wethAddress,
+  maxAdditionalAmountPercentage,
+  payerAddress;
+const swapsIn = {};
+const swapsOut = {};
 const acceptableTokensArray = [];
+const balances = {};
 
 async function main() {
   const blockNumber = await ethers.provider.getBlockNumber();
@@ -32,6 +42,8 @@ async function main() {
   //   swapDeadline = await payerV3.swapDeadline();
   swapDeadline = bn(10 * 60 * 1000);
   wethAddress = await payerV3.wethAddress();
+  maxAdditionalAmountPercentage = await payerV3.maxAdditionalAmountPercentage();
+  payerAddress = await payerV3.payerAddress();
   console.log(`Network ${networkName}`);
   const contractParams = contractParamsAll[chainId];
   console.log(`Contract params:`);
@@ -50,9 +62,11 @@ async function main() {
     acceptableTokensArray.push(await payerV3.acceptableTokensArray(i));
   }
 
-  swapsIn = {};
-  swapsOut = {};
+  console.log({ payerAddress });
   for (let i = 0; i < acceptableTokensArray.length; i++) {
+    if (!balances[acceptableTokensArray[i]]) balances[acceptableTokensArray[i]] = {};
+    balances[acceptableTokensArray[i]][payerAddress] = await payerV3.balanceOf(acceptableTokensArray[i], payerAddress);
+
     for (let j = 0; j < acceptableTokensArray.length; j++) {
       if (acceptableTokensArray[i] === acceptableTokensArray[j]) continue;
       if (!swapsIn[acceptableTokensArray[i]]) swapsIn[acceptableTokensArray[i]] = {};
@@ -60,7 +74,14 @@ async function main() {
       swapsIn[acceptableTokensArray[i]][acceptableTokensArray[j]] = bn(0);
       swapsOut[acceptableTokensArray[i]][acceptableTokensArray[j]] = bn(0);
     }
+
+    for (let k = 0; k < orderIds.length; k++) {
+      const order = await payerV3.orders(orderIds[k]);
+      balances[acceptableTokensArray[i]][order.user] = await payerV3.balanceOf(acceptableTokensArray[i], order.user);
+      console.log(balances[acceptableTokensArray[i]][order.user]);
+    }
   }
+
   const _params = {
     orderIds: contractParams._params[0],
     swap: contractParams._params[1],
@@ -175,40 +196,28 @@ async function _executeOrder(orderId, swap, additionalAmount) {
     const swapAmountOut = (swapsOut[order.tokenIn][order.tokenOut] * accuracy) / proportionIn;
     console.log({ proportionIn, swapAmountOut });
     let remainder;
-    // if (isUsdToken[order.tokenIn]) {
-    //     remainder =
-    //         swapAmountOut -
-    //         (order.amountIn *
-    //             10 ** IERC20Metadata(order.tokenOut).decimals()) /
-    //         order.price;
-    //     if (
-    //         !(order.additionalAmount <
-    //             calculatePercentage(
-    //                 order.amountIn,
-    //                 maxAdditionalAmountPercentage
-    //             ))
-    //     ) {
-    //         revert Errors.WrongAdditionalAmount();
-    //     }
-    // } else {
-    //     remainder =
-    //         swapAmountOut -
-    //         (order.amountIn * order.price) /
-    //         10 ** IERC20Metadata(order.tokenIn).decimals();
-    //     if (
-    //         !(order.additionalAmount <
-    //             calculatePercentage(
-    //                 swapAmountOut - remainder,
-    //                 maxAdditionalAmountPercentage
-    //             ))
-    //     ) {
-    //         revert Errors.WrongAdditionalAmount();
-    //     }
-    // }
-    // order.amountOut = swapAmountOut - remainder;
-    // balances[order.tokenOut][payerAddress] =
-    //     balances[order.tokenOut][payerAddress] +
-    //     remainder;
+    console.log(await payerV3.isUsdToken(order.tokenIn));
+    if (await payerV3.isUsdToken(order.tokenIn)) {
+      remainder =
+        swapAmountOut -
+        (order.amountIn * 10 ** (await (await IERC20Metadata(order.tokenOut)).decimals())) / order.price;
+      if (!(order.additionalAmount < calculatePercentage(order.amountIn, maxAdditionalAmountPercentage))) {
+        revert('WrongAdditionalAmount()');
+      }
+    } else {
+      remainder =
+        swapAmountOut -
+        (order.amountIn * order.price) / 10 ** (await (await IERC20Metadata(order.tokenOut)).decimals());
+      if (!(order.additionalAmount < calculatePercentage(swapAmountOut - remainder, maxAdditionalAmountPercentage))) {
+        revert('WrongAdditionalAmount()');
+      }
+    }
+    console.log({ remainder });
+    order.amountOut = swapAmountOut - remainder;
+    console.log(balances);
+    balances[order.tokenOut][payerAddress] = balances[order.tokenOut][payerAddress].add(bn(remainder));
+    //! TODO балансы кривые после подсчета
+    console.log(balances);
   } else {
     order.tokenOut = order.tokenIn;
     order.amountOut = order.amountIn;
@@ -216,12 +225,16 @@ async function _executeOrder(orderId, swap, additionalAmount) {
 }
 
 function claimOrder(_orderId, _usdToken, _force) {
-  // TODO
+  //! TODO нужно ли эту шляпу тестировать?
   console.log({ _orderId, _usdToken, _force });
 }
 
 function calculateProportion(_quantity, _total, _accuracy) {
   return (_quantity * _accuracy) / _total;
+}
+
+function calculatePercentage(_quantity, _percentage) {
+  return (_quantity * _percentage) / 10000;
 }
 
 function revert(msg) {
