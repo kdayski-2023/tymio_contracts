@@ -41,10 +41,18 @@ module.exports = {
     },
     arbitrum: {
       network_id: 42161,
-      url: 'https://arbitrum-mainnet.infura.io/v3/dbfff08523c14a52b0280dc383126193',
+      // url: 'https://arbitrum-mainnet.infura.io/v3/dbfff08523c14a52b0280dc383126193',
+      url: 'https://arb1.arbitrum.io/rpc',
       accounts: [DEPLOYER_PRIVATE_KEY],
       gas: 8e6,
-      gasPrice: 5000000000,
+      gasPrice: 100000000,
+    },
+    sepolia: {
+      network_id: 11155111,
+      url: 'https://sepolia.gateway.tenderly.co',
+      accounts: [DEPLOYER_PRIVATE_KEY],
+      gas: 8e6,
+      gasPrice: 1000000000,
     },
     arbsepolia: {
       network_id: 421614,
@@ -52,6 +60,13 @@ module.exports = {
       accounts: [DEPLOYER_PRIVATE_KEY],
       gas: 8e6,
       gasPrice: 1000000000,
+    },
+    celotest: {
+      network_id: 44787,
+      url: 'https://alfajores-forno.celo-testnet.org',
+      accounts: [DEPLOYER_PRIVATE_KEY],
+      gas: 8e6,
+      gasPrice: 10000000000,
     },
     rpc: {
       network_id: 14,
@@ -73,18 +88,12 @@ module.exports = {
       gas: 15e6,
     },
     mumbai: {
-      url: 'https://rpc-mumbai.maticvigil.com/v1/eeb2fbfce83cd77808f74c7cc9cfc003c90f1df1',
+      network_id: 80001,
+      url: 'https://polygon-mumbai.infura.io/v3/010ca5412a6e47f28f00bb896bf11922',
       accounts: [DEPLOYER_PRIVATE_KEY],
       gasPrice: 9000000000,
       gas: 15e6,
     },
-    arbitrumOne: {
-      url: 'https://rpc-mumbai.maticvigil.com/v1/eeb2fbfce83cd77808f74c7cc9cfc003c90f1df1',
-      accounts: [DEPLOYER_PRIVATE_KEY],
-      gasPrice: 9000000000,
-      gas: 15e6,
-    },
-
     goerli: {
       url: 'https://rpc.ankr.com/eth_goerli',
       accounts: [DEPLOYER_PRIVATE_KEY],

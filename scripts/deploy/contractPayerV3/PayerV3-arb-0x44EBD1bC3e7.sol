@@ -244,7 +244,6 @@ contract PayerV3 {
         bool _claimOrders,
         address _usdClaimToken
     ) public onlyOwnerOrService {
-        console.log("executeOrders2");
         uint256 orderIdsLength = _params.orderIds.length;
         // Ensures the consistency of the arrays' lengths and performs initial validations.
         if (

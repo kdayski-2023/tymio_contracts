@@ -26,10 +26,10 @@ Helper = {
     for (const [param, value] of Object.entries(arr)) {
       const foundAddress = existAddress.find((o) => o.address === value.toString().toLowerCase());
       if (foundAddress != undefined) {
-        let decimal = 6
-        if (foundAddress.name == 'WBTC') decimal = 8
-        if (foundAddress.name == 'WETH') decimal = 18
-        arr[`_${param}`] = { name: foundAddress.name, short: `${foundAddress.name} (${Helper.shortAddress(foundAddress.address)})`, address: foundAddress.address, decimal }
+        let decimals = 6
+        if (foundAddress.name == 'WBTC') decimals = 8
+        if (foundAddress.name == 'WETH') decimals = 18
+        arr[`_${param}`] = { name: foundAddress.name, short: `${foundAddress.name} (${Helper.shortAddress(foundAddress.address)})`, address: foundAddress.address, decimals }
       }
     }
   },

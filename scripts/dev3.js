@@ -1,8 +1,7 @@
 const BN = require('bn.js')
 async function main() {
     let accounts = await ethers.getSigners()
-    console.log(accounts.length)
-    
+
     const owner = accounts[0]
     const ownerAddress = accounts[0].address
     const service = accounts[1]
@@ -10,14 +9,14 @@ async function main() {
     const user = accounts[2]
     const userAddress = user.address
     log(`user: ${userAddress}`)
-    
+
     const Usdc = await hre.ethers.getContractFactory('ERC20')
     let usdc = await Usdc.deploy("USDC", "USDC", 6)
     usdc = await usdc.deployed()
     const usdcAddress = usdc.address
     tx = await usdc.mint(userAddress, sUsd(7000))
     await tx.wait()
-    tx = await usdc.mint(ownerAddress, sUsd(100000) )
+    tx = await usdc.mint(ownerAddress, sUsd(100000))
     await tx.wait()
     log(`usdc: ${usdcAddress}`)
 
@@ -27,7 +26,7 @@ async function main() {
     const usdtAddress = usdt.address
     tx = await usdt.mint(userAddress, sUsd(7000))
     await tx.wait()
-    tx = await usdt.mint(ownerAddress, sUsd(100000) )
+    tx = await usdt.mint(ownerAddress, sUsd(100000))
     await tx.wait()
     log(`usdt: ${usdtAddress}`)
 
@@ -37,7 +36,7 @@ async function main() {
     const wbtcAddress = wbtc.address
     tx = await wbtc.mint(userAddress, sBtc(1))
     await tx.wait()
-    tx = await wbtc.mint(ownerAddress, sBtc(1) )
+    tx = await wbtc.mint(ownerAddress, sBtc(1))
     await tx.wait()
     log(`wbtc: ${wbtcAddress}`)
 
@@ -46,12 +45,13 @@ async function main() {
     weth = await weth.deployed()
     const wethAddress = weth.address
     log(`wethAddress: ${wethAddress}`)
-    await owner.sendTransaction({to: wethAddress, value: sEth(100)});// отправив на weth эфиров, при свапе происходит минт и порой не хватает средств в тестовой среде
+    await owner.sendTransaction({ to: wethAddress, value: sEth(100) });// отправив на weth эфиров, при свапе происходит минт и порой не хватает средств в тестовой среде
 
     const TestSwapRouter = await hre.ethers.getContractFactory('TestSwapRouter')
     let testSwapRouter = await TestSwapRouter.deploy()
     testSwapRouter = await testSwapRouter.deployed()
     const testSwapRouterAddress = testSwapRouter.address
+    console.log('testSwapRouterAddress: ', testSwapRouterAddress)
     tx = await testSwapRouter.setRatio(usdcAddress, wethAddress, 500000000000000) // 500000000000000 = 2000$ $1900
     await tx.wait()
     tx = await testSwapRouter.setRatio(usdtAddress, wethAddress, 500000000000000) // 500000000000000 = 2000$ $1900
@@ -65,17 +65,17 @@ async function main() {
     const payerAddress = payer.address
     log(`Deploed Payer ${payerAddress}`)
 
-    tx = await payer.editAcceptableToken(usdcAddress, true, true)
+    console.log('callStatic')
+    tx = await payer.callStatic.editAcceptableToken(usdcAddress, true, true, 1)
+    console.log('callNormal')
+
+    tx = await payer.editAcceptableToken(usdcAddress, true, true, 1)
     await tx.wait()
-    tx = await payer.editAcceptableToken(usdtAddress, true, true)
+    tx = await payer.editAcceptableToken(usdtAddress, true, true, 1)
     await tx.wait()
-    tx = await payer.editAcceptableToken(wethAddress, true, false)
+    tx = await payer.editAcceptableToken(wethAddress, true, false, 1)
     await tx.wait()
-    tx = await payer.setWeth(wethAddress)
-    await tx.wait() 
- 
-    tx = await payer.setSwapRouter(testSwapRouterAddress)
-    await tx.wait()
+
 
 
     /*
@@ -85,14 +85,14 @@ async function main() {
     user: Забирает только прибыль 
     user: Забирает все свои средства
     */
-    
+
     log(`[user]: Разрешает контракту использовать 10000 USDC. Approve(10000)`)
     tx = await usdc.connect(user).approve(payerAddress, sUsd(10000))
     tx = await tx.wait()
     tx = await usdt.connect(user).approve(payerAddress, sUsd(10000))
     tx = await tx.wait()
 
-    const orderDuration = 5 
+    const orderDuration = 5
     const timeOut = 6
 
 
@@ -106,9 +106,9 @@ async function main() {
     tx = await tx.wait()
     tx = await payer.connect(user).depositAndOrder(usdtAddress, wethAddress, sUsd(1000), sUsd(2100), orderDuration)
     tx = await tx.wait()
-    tx = await payer.connect(user).depositEthAndOrder(wethAddress, usdcAddress, sEth(1), sUsd(1900), orderDuration, { value: sEth(1) }) // sell
+    tx = await payer.connect(user).depositEthAndOrder(usdcAddress, sEth(1), sUsd(1900), orderDuration, { value: sEth(1) }) // sell
     tx = await tx.wait()
-  
+
     log(`[contract]: Баланс пользователя ${await payer.balanceOf(usdcAddress, userAddress)} USDC`)
 
     log(`[system]: Ждем ${timeOut} сек`)
@@ -126,7 +126,7 @@ async function main() {
     await tx.wait()
     log(`[contract]: Баланс в контракте - сервиса ${cUsd(await payer.balanceOf(usdcAddress, ownerAddress))} USDC`)
     log(`[service]: Исполняем ордер №0 пользователя`)
-    
+
     tx = await payer.executeOrders([[0, 1, 2, 3, 4], [true, true, true, true, true], [sUsd(10), sUsd(10), sUsd(10), sUsd(10), sUsd(10)]])
     tx = await tx.wait()
 
@@ -149,7 +149,7 @@ async function main() {
     tx = await payer.connect(user).fullWithdrawalETH(await payer.balanceOf(wethAddress, userAddress))
     tx = await tx.wait()
 
-    
+
     log(`[contract]: Баланс в контракте - сервиса USDC ${cUsd(await payer.balanceOf(usdcAddress, ownerAddress))} `)
     log(`[contract]: Баланс в контракте - сервиса USDT ${cUsd(await payer.balanceOf(usdtAddress, ownerAddress))} `)
     log(`[contract]: Баланс в контракте - сервиса WETH ${cEth(await payer.balanceOf(wethAddress, ownerAddress))} `)
@@ -182,37 +182,37 @@ function wait(seconds) {
 }
 
 
-function cEth(amount){
+function cEth(amount) {
     return convertInt(amount, 18)
 }
-function cUsd(amount){
+function cUsd(amount) {
     return convertInt(amount, 6)
 }
-function cBtc(amount){
+function cBtc(amount) {
     return convertInt(amount, 8)
 }
-function sEth(amount){
+function sEth(amount) {
     return convertStr(amount, 18)
 }
-function sUsd(amount){
+function sUsd(amount) {
     return convertStr(amount, 6)
 }
-function sBtc(amount){
+function sBtc(amount) {
     return convertStr(amount, 8)
 }
 function convertInt(amount, decimal, nums = 4) {
     const amountBn = new BN(amount.toString());
     const decimalBN = new BN(decimal.toString());
     const divisor = new BN(10).pow(decimalBN);
-  
+
     const beforeDecimal = amountBn.div(divisor);
     const afterDecimal = amountBn.mod(divisor);
-  
+
     const afterDecimalStr = afterDecimal.toString(10).padStart(decimal, '0');
-  
+
     return `${beforeDecimal.toString()}.${afterDecimalStr.substr(0, nums)}`;
-  }
-function convertStr(amount, decimal){
+}
+function convertStr(amount, decimal) {
     const amountBn = new BN(amount.toString())
     const decimalBN = new BN(decimal.toString())
     const divisor = new BN(10).pow(decimalBN)
