@@ -42,7 +42,7 @@ module.exports = {
     arbitrum: {
       network_id: 42161,
       // url: 'https://arbitrum-mainnet.infura.io/v3/dbfff08523c14a52b0280dc383126193',
-      url: 'https://arb1.arbitrum.io/rpc',
+      url: 'https://arbitrum-mainnet.infura.io/v3/20293cad65764db693c99dacc4d1af91',
       accounts: [DEPLOYER_PRIVATE_KEY],
       gas: 8e6,
       gasPrice: 100000000,
