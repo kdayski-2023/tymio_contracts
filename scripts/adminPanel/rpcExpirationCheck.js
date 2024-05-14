@@ -1,9 +1,11 @@
 const { filterTextKeys, getNetworkName, makeReadable, convertTokenAmount, readableTokenAmount, IERC20, IERC20Metadata, replaceAddress } = require('../helpers/web3');
 var fs = require('fs');
 
-const ethPrice = 3140 * 1000000 // TODO GET DINAMIC FROM BCH
-const btcPrice = 64371 * 1000000
 const deployments = require('../../deployments');
+const dataPrices = JSON.parse(fs.readFileSync('./temp/prices.json', 'utf8'));
+console.log(dataPrices)
+const btcPrice = dataPrices.BTC * 1000000
+const ethPrice = dataPrices.ETH * 1000000
 
 const bn = ethers.BigNumber.from;
 let payerV3,
@@ -12,17 +14,20 @@ let payerV3,
   networkName,
   wethAddress,
   maxAdditionalAmountPercentage,
-  payerAddress;
-const swapsIn = {};
-const swapsOut = {};
-const acceptableTokensArray = [];
-const balances = {};
+  payerAddress,
+  payerAddress1
+const swapsIn = {}
+const swapsOut = {}
+const acceptableTokensArray = []
+const balances = {}
+const additionalAmounts = []
+const usdTokens = []
 
 
 async function main() {
   const blockNumber = await ethers.provider.getBlockNumber();
   block = await ethers.provider.getBlock(blockNumber);
-  
+
   const chainId = hre.network.config.network_id;
   networkName = getNetworkName(chainId)
   console.log(`Сеть: ${networkName}`)
@@ -37,16 +42,15 @@ async function main() {
   const contractParams = JSON.parse(fs.readFileSync('./temp/data.json', 'utf8'));
   const orderIds = contractParams._params[0];
   const contractOrders = {}
+  const orderTimestamps = []
   const sum = contractParams._params[2].reduce((partialSum, a) => Number(partialSum) + Number(a), 0)
   console.log(`Ордера (${orderIds.length}): ${orderIds}`)
-  console.log(`Нужно выплатить: ${sum}`)
-  console.log(`Доступно для выплаты: ${await payerV3.balanceOf(contractParams._usdClaimToken, payerAddress1)}`)
 
   for (let i = 0; i < orderIds.length; i++) {
     const orderId = contractParams._params[0][i]
     const order = makeReadable(filterTextKeys(await payerV3.orders(orderId)))
     contractOrders[orderId] = order
-    // TODO Написать понятным текстом вывод в консоль чего хотел пользователь и по какой цене
+    orderTimestamps.push(order.endTimestamp)
     const needSwap = contractParams._params[1][i]
     let amountTxt = ''
     if (needSwap) {
@@ -57,21 +61,66 @@ async function main() {
     const additionalAmount = convertTokenAmount(contractParams._params[2][i], 6)
 
     console.log(`[${orderId}] ${amountTxt} + ${additionalAmount} usd (${convertTokenAmount(order.price, 6)}) `)
-
   }
+  // CALC TIME LAG
+  console.log(`Минимальное время ордера ${getReadebleTimestamp(arrayMin(orderTimestamps))}. Максимальное ${getReadebleTimestamp(arrayMax(orderTimestamps))}`)
   console.log(`Ордера [C]`)
   //#region PREPARING
   acceptableTokensArrayLength = Number(await payerV3.acceptableTokensArrayLength());
 
-  for (let i = 0; i < acceptableTokensArrayLength; i++) {
-    acceptableTokensArray.push(await payerV3.acceptableTokensArray(i));
-  }
 
+  for (let i = 0; i < acceptableTokensArrayLength; i++) {
+    const acceptableTokenAddress = await payerV3.acceptableTokensArray(i)
+    acceptableTokensArray.push(acceptableTokenAddress)
+    if (await payerV3.isUsdToken(acceptableTokenAddress)) {
+      usdTokens.push(acceptableTokenAddress.toLowerCase())
+      additionalAmounts.push({ token: acceptableTokenAddress.toLowerCase(), additionalAmount: 0, payerBalance: await payerV3.balanceOf(acceptableTokenAddress, payerAddress1) })
+    }
+
+  }
   for (let i = 0; i < acceptableTokensArray.length; i++) {
-    if (!balances[acceptableTokensArray[i]]) balances[acceptableTokensArray[i]] = {};
-    balances[acceptableTokensArray[i]][payerAddress] = await payerV3.balanceOf(acceptableTokensArray[i], payerAddress);
+    //if (!balances[acceptableTokensArray[i]]) balances[acceptableTokensArray[i]] = {};
+    //balances[acceptableTokensArray[i]][payerAddress] = await payerV3.balanceOf(acceptableTokensArray[i], payerAddress);
 
     for (let j = 0; j < acceptableTokensArray.length; j++) {
+      console.log(i, j, acceptableTokensArray[i], acceptableTokensArray[j])
+    }
+  }
+  // console.log(`Доступно для выплаты: ${await payerV3.balanceOf(contractParams._usdClaimToken, payerAddress1)}`)
+  // check Payer address balances
+
+  for (let i = 0; i < orderIds.length; i++) {
+    const orderId = contractParams._params[0][i]
+    const additionalAmount = contractParams._params[2][i]
+    const order = contractOrders[orderId]
+    let payToken = order.tokenIn
+    if (isUsdTokenCheck(order.tokenIn)) {
+      payToken = order.tokenIn
+    }
+    if (isUsdTokenCheck(order.tokenOut)) {
+      payToken = order.tokenOut
+    }
+    if (payToken == '0x0') {
+      console.log(order)
+    }
+    const finded = additionalAmounts.find((o) => o.token == payToken.toLowerCase())
+    console.log(payToken)
+    console.log(additionalAmounts)
+    finded.additionalAmount += Number(additionalAmount)
+
+  }
+  console.log(`Нужно выплатить всего: ${sum} USD`)
+  console.log(`Выплаты пользователям:`)
+  for (const additionalAmountToken of additionalAmounts) {
+    const additionalToken = replaceAddress(additionalAmountToken.token)
+    console.log(`${additionalToken.short} ${readableTokenAmount(additionalToken, additionalAmountToken.additionalAmount)} Доступно ${readableTokenAmount(additionalToken, additionalAmountToken.payerBalance)}`)
+  }
+  for (let i = 0; i < acceptableTokensArray.length; i++) {
+    //if (!balances[acceptableTokensArray[i]]) balances[acceptableTokensArray[i]] = {};
+    //balances[acceptableTokensArray[i]][payerAddress] = await payerV3.balanceOf(acceptableTokensArray[i], payerAddress);
+
+    for (let j = 0; j < acceptableTokensArray.length; j++) {
+
       if (acceptableTokensArray[i] === acceptableTokensArray[j]) continue;
       if (!swapsIn[acceptableTokensArray[i]]) swapsIn[acceptableTokensArray[i]] = {};
       if (!swapsOut[acceptableTokensArray[i]]) swapsOut[acceptableTokensArray[i]] = {};
@@ -80,8 +129,8 @@ async function main() {
     }
 
     for (let k = 0; k < orderIds.length; k++) {
-      const order = await payerV3.orders(orderIds[k]);
-      balances[acceptableTokensArray[i]][order.user] = await payerV3.balanceOf(acceptableTokensArray[i], order.user);
+      // const order = await payerV3.orders(orderIds[k]);
+      //balances[acceptableTokensArray[i]][order.user] = await payerV3.balanceOf(acceptableTokensArray[i], order.user);
     }
   }
 
@@ -91,6 +140,7 @@ async function main() {
     additionalAmount: contractParams._params[2],
   };
   //#endregion
+
   await emulateExecution(
     _params,
     contractParams._amountOutMinimum,
@@ -159,16 +209,18 @@ async function emulateExecution(_params, _amountOutMinimum, _claimOrders, _usdCl
         if (tokenIn.name == 'WETH') {
           amountOut = swapInAmount.div(10 ** 8).mul(ethPrice).div(10 ** 10)
         }
-        if (tokenIn.name == 'USDC' && tokenOut.name == 'WBTC') {
+        if (isUsdTokenCheck(tokenIn.address) && tokenOut.name == 'WBTC') {
           amountOut = swapInAmount.mul(10 ** tokenOut.decimals).div(btcPrice)
         }
-        if (tokenIn.name == 'USDC' && tokenOut.name == 'WETH') {
+        if (isUsdTokenCheck(tokenIn.address) && tokenOut.name == 'WETH') {
           amountOut = swapInAmount.mul(10 ** 10).div(ethPrice).mul(1e8)
         }
+
         console.log(`   Получим при обмене (amountOut) ~${readableTokenAmount(tokenOut, amountOut)} (${amountOut})`);
         console.log(`   Минимум который хотели получить (amountOutMinimum) ${readableTokenAmount(tokenOut, _amountOutMinimum[swapsCount])} (${_amountOutMinimum[swapsCount]})`);
         console.log(`   Обменяли больше чем минимально ожидаемое? ${amountOut.gt(bn(_amountOutMinimum[swapsCount]))}`)
         if (!amountOut.gt(bn(_amountOutMinimum[swapsCount]))) {
+          //!
           revert(`IncorrectAmountOut(swapsCount: ${swapsCount} = ${_amountOutMinimum[swapsCount]})`);
         }
         swapsOut[acceptableTokensArray[i]][acceptableTokensArray[j]] = amountOut;
@@ -179,12 +231,6 @@ async function emulateExecution(_params, _amountOutMinimum, _claimOrders, _usdCl
   for (let i = 0; i < orderIdsLength; i++) {
     await _executeOrder(_params.orderIds[i], _params.swap[i], _params.additionalAmount[i]);
   }
-  if (_claimOrders) {
-    for (let i = 0; i < orderIdsLength; i++) {
-      // claimOrder(_params.orderIds[i], _usdClaimToken, false);
-    }
-  }
-
 }
 
 async function _executeOrder(orderId, swap, additionalAmount) {
@@ -207,8 +253,7 @@ async function _executeOrder(orderId, swap, additionalAmount) {
     const swapAmountOut = bn(swapsOut[order.tokenIn][order.tokenOut].mul(accuracy).div(proportionIn));
     console.log(`   Доля пользователя от общей суммы свапа ${readableTokenAmount(tokenOut, swapsOut[order.tokenIn][order.tokenOut])} составляет ${readableTokenAmount(tokenOut, swapAmountOut)} до вычета остатка`)
     let remainder
-    const isUsdToken = await payerV3.isUsdToken(order.tokenIn)
-    // console.log(`isUsdToken ${tokenIn.short} ${isUsdToken}`)
+    const isUsdToken = isUsdTokenCheck(order.tokenIn)
     if (isUsdToken) {
       remainder = swapAmountOut - (order.amountIn * 10 ** tokenOut.decimals) / order.price;
       if (!(order.additionalAmount < calculatePercentage(order.amountIn, maxAdditionalAmountPercentage))) {
@@ -216,11 +261,12 @@ async function _executeOrder(orderId, swap, additionalAmount) {
       }
     } else {
       // remainder = swapAmountOut - (order.amountIn * order.price) / 10 ** tokenOut.decimals
-      // if (tokenIn.name == 'WETH') {
-      // remainder = swapAmountOut.sub(order.amountIn.div(10 ** 8).mul(order.price).div(10 ** 10)) //TODO CHECK IT OVERFLOW ETH SWAP
-      // } else {
-      remainder = swapAmountOut.sub(order.amountIn.mul(order.price).div(10 ** tokenIn.decimals))
-      // }
+      if (tokenIn.name == 'WETH') {
+        remainder = swapAmountOut.sub(order.amountIn.div(10 ** 8).mul(order.price).div(10 ** 10)) //TODO CHECK IT OVERFLOW ETH SWAP
+      } else {
+        // console.log(swapAmountOut, order.amountIn, order.price, 10 ** tokenIn.decimals)
+        remainder = swapAmountOut.sub(order.amountIn.mul(order.price).div(10 ** tokenIn.decimals))
+      }
 
       if (!(order.additionalAmount < calculatePercentage(swapAmountOut - remainder, maxAdditionalAmountPercentage))) {
         revert('WrongAdditionalAmount()')
@@ -261,9 +307,29 @@ const safeDiv = (a, b) => {
   }
   return quotient
 }
+function arrayMin(arr) {
+  return arr.reduce(function (p, v) {
+    return (p < v ? p : v)
+  });
+}
+
+function arrayMax(arr) {
+  return arr.reduce(function (p, v) {
+    return (p > v ? p : v)
+  });
+}
+function isUsdTokenCheck(token) {
+  return usdTokens.includes(token.toLowerCase())
+}
+function getReadebleTimestamp(timestamp) {
+  const pad = (n, s = 2) => (`${new Array(s).fill(0)}${n}`).slice(-s)
+  const d = new Date(timestamp * 1000)
+  d.setUTCHours(10)// convert to locale time zone
+  return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${pad(d.getFullYear(), 4)} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+}
 main()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error(error);
-    process.exit(1);
+    console.error(error)
+    process.exit(1)
   });

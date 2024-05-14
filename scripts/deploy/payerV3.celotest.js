@@ -38,7 +38,7 @@ async function main() {
         tx = await usdc.mint(ownerAddress, sUsd(mintAmount))
         await tx.wait()
         log(`${usdcAddress}: usdc`);
-
+        return
         const Usdt = await hre.ethers.getContractFactory('ERC20')
         let usdt = await Usdt.deploy("USDT", "USDT", 6)
         usdt = await usdt.deployed()

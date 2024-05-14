@@ -62,7 +62,7 @@ async function main() {
         tx = await weth.mint(ownerAddress, sEth(mintAmount))
         await tx.wait()
         log(`${wethAddress}: weth`);
-
+        return
         const TestSwapRouter = await hre.ethers.getContractFactory('TestSwapRouter');
         let testSwapRouter = await TestSwapRouter.deploy();
         testSwapRouter = await testSwapRouter.deployed();
@@ -80,11 +80,11 @@ async function main() {
 
     if (stage == 2) {
         const settings = {
-            usdcAddress: '0xc588e6a573E691650Ab01f6Cf01950a606eDB6b5',
-            usdtAddress: '0x9b5AdC227a0213B6E1c05959BD46F8970Ca520C1',
-            wbtcAddress: '0x5fB5A074a7504C37159E903Ecf412EEbeec231A9',
-            wethAddress: '0x8dC401386CDaE78D429daA6489a75644e0C12339',
-            testSwapRouterAddress: '0x5814Ebbc6aE6040E631EE3Ec16353380E571818a'
+            usdcAddress: '0xE090e328eE058CF04434e97eC1e77B959A3e10E3',
+            usdtAddress: '0xe2a98aa4d6a22bD7B8A0b5bd17f1Cb051fdE87dF',
+            wbtcAddress: '0xB2a846aE67aA33Cb6E482C388702C576d47EF79C:',
+            wethAddress: '0xDBE7967FeEAbD50CA5c8897ce16FF4f40B5dEDB8',
+            testSwapRouterAddress: ''
         }
 
         const Payer = await hre.ethers.getContractFactory('PayerV3');

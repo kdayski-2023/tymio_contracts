@@ -56,14 +56,14 @@ module.exports = {
     },
     arbsepolia: {
       network_id: 421614,
-      url: 'https://arbitrum-sepolia.blockpi.network/v1/rpc/public ',
+      url: 'https://arbitrum-sepolia.infura.io/v3/8396e6822d72412fb51804153f1bae11',
       accounts: [DEPLOYER_PRIVATE_KEY],
       gas: 8e6,
       gasPrice: 1000000000,
     },
-    celotest: {
-      network_id: 44787,
-      url: 'https://alfajores-forno.celo-testnet.org',
+    sepolia: {
+      network_id: 11155111,
+      url: 'https://sepolia.infura.io/v3/02db08acc1184d76bd26391d80524cab',
       accounts: [DEPLOYER_PRIVATE_KEY],
       gas: 8e6,
       gasPrice: 10000000000,

@@ -13,11 +13,23 @@ const Router = {
         checkExpiration(args, callback) {
             console.log(args)
             networkName = getNetworkName(args.chainId)
-            console.log(networkName)
             console.log("checkExpiration")
             socketLog(`🚀 go Faster then Light!`, args)
-            const json = JSON.stringify(args.data);
-            fs.writeFileSync('./temp/data.json', json, 'utf8', function (err) {
+            const jsonData = JSON.stringify(args.data);
+            fs.writeFileSync('./temp/data.json', jsonData, 'utf8', function (err) {
+                if (err) {
+                    return console.log(err);
+                }
+                console.log("The file was saved!");
+            });
+            let jsonPrices
+            console.log(args.prices)
+            if (args.prices != undefined) {
+                jsonPrices = args.prices;
+            } else {
+                jsonPrices = JSON.parse(fs.readFileSync('./temp/defaultPrices.json', 'utf8'));
+            }
+            fs.writeFileSync('./temp/prices.json', JSON.stringify(jsonPrices), 'utf8', function (err) {
                 if (err) {
                     return console.log(err);
                 }
