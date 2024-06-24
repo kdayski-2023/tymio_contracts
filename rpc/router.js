@@ -22,12 +22,16 @@ const Router = {
                 }
                 console.log("The file was saved!");
             });
-            let jsonPrices
-            console.log(args.prices)
+            let jsonPrices            
+
             if (args.prices != undefined) {
                 jsonPrices = args.prices;
             } else {
                 jsonPrices = JSON.parse(fs.readFileSync('./temp/defaultPrices.json', 'utf8'));
+            }
+            if(args.prices.WETH.sell !=undefined){
+                jsonPrices.ETH = args.prices.WETH.sell.USDC
+                jsonPrices.BTC = args.prices.WBTC.sell.USDC
             }
             fs.writeFileSync('./temp/prices.json', JSON.stringify(jsonPrices), 'utf8', function (err) {
                 if (err) {

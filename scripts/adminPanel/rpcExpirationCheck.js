@@ -1,11 +1,12 @@
 const { filterTextKeys, getNetworkName, makeReadable, convertTokenAmount, readableTokenAmount, IERC20, IERC20Metadata, replaceAddress } = require('../helpers/web3');
 var fs = require('fs');
-
-const deployments = require('../../deployments');
+const axios = require('axios')
+const deployments = require('../../deployments')
+const apiUrl = 'https://api.tymio.com/api' //https://mars2.fanil.ru/api
 const dataPrices = JSON.parse(fs.readFileSync('./temp/prices.json', 'utf8'));
 console.log(dataPrices)
-const btcPrice = dataPrices.BTC * 1000000
-const ethPrice = dataPrices.ETH * 1000000
+const btcPrice = Math.floor(dataPrices.BTC) * 1000000
+const ethPrice = Math.floor(dataPrices.ETH) * 1000000
 
 const bn = ethers.BigNumber.from;
 let payerV3,
@@ -51,6 +52,10 @@ async function main() {
     const order = makeReadable(filterTextKeys(await payerV3.orders(orderId)))
     contractOrders[orderId] = order
     orderTimestamps.push(order.endTimestamp)
+
+    // Подробное время
+    // console.log(`[${orderId}] ${getReadebleTimestamp(order.endTimestamp)}`)
+    
     const needSwap = contractParams._params[1][i]
     let amountTxt = ''
     if (needSwap) {
@@ -61,6 +66,32 @@ async function main() {
     const additionalAmount = convertTokenAmount(contractParams._params[2][i], 6)
 
     console.log(`[${orderId}] ${amountTxt} + ${additionalAmount} usd (${convertTokenAmount(order.price, 6)}) `)
+  }
+  // orders check
+  if (true) {
+    console.log(`Проверка ордеров на валидность`)
+    for (let i = 0; i < orderIds.length; i++) {
+      const orderId = orderIds[i]
+      const order = contractOrders[orderId]
+      const needSwap = contractParams._params[1][i]
+      const userOrders = await apiGetUserOrders(order.user)
+      const findedOrder = userOrders.find(o => o.contract_id == orderId && o.contract_version == 3)
+      const apiOrderPrice = readableTokenAmount(order._tokenOut, order.price)
+
+      if (!bn(order.price).eq(bn(findedOrder.price * 1000000))) {
+        console.log(`   [${orderId}] Ошибка цены ${order.price} != ${findedOrder.price * 1000000}`)
+      }else{
+        // console.log(`   [${orderId}] Correct ${order.price} != ${findedOrder.price * 1000000}`)
+        console.log(`   [${orderId}] Correct`)
+      }
+      // if (order._tokenIn.name == 'WBTC') {
+      //   if(btcPrice < apiOrderPrice && needSwap){
+      //     console.log(`   [${orderId}] Correct`)
+      //   }
+      // }
+      // if (order._tokenIn.name == 'WETH') {
+      // }
+    }
   }
   // CALC TIME LAG
   console.log(`Минимальное время ордера ${getReadebleTimestamp(arrayMin(orderTimestamps))}. Максимальное ${getReadebleTimestamp(arrayMax(orderTimestamps))}`)
@@ -78,15 +109,6 @@ async function main() {
     }
 
   }
-  for (let i = 0; i < acceptableTokensArray.length; i++) {
-    //if (!balances[acceptableTokensArray[i]]) balances[acceptableTokensArray[i]] = {};
-    //balances[acceptableTokensArray[i]][payerAddress] = await payerV3.balanceOf(acceptableTokensArray[i], payerAddress);
-
-    for (let j = 0; j < acceptableTokensArray.length; j++) {
-      console.log(i, j, acceptableTokensArray[i], acceptableTokensArray[j])
-    }
-  }
-  // console.log(`Доступно для выплаты: ${await payerV3.balanceOf(contractParams._usdClaimToken, payerAddress1)}`)
   // check Payer address balances
 
   for (let i = 0; i < orderIds.length; i++) {
@@ -104,10 +126,7 @@ async function main() {
       console.log(order)
     }
     const finded = additionalAmounts.find((o) => o.token == payToken.toLowerCase())
-    console.log(payToken)
-    console.log(additionalAmounts)
     finded.additionalAmount += Number(additionalAmount)
-
   }
   console.log(`Нужно выплатить всего: ${sum} USD`)
   console.log(`Выплаты пользователям:`)
@@ -231,10 +250,10 @@ async function emulateExecution(_params, _amountOutMinimum, _claimOrders, _usdCl
   for (let i = 0; i < orderIdsLength; i++) {
     await _executeOrder(_params.orderIds[i], _params.swap[i], _params.additionalAmount[i]);
   }
+  console.log(`All Done!`)
 }
 
 async function _executeOrder(orderId, swap, additionalAmount) {
-  // TODO
   console.log(`Исполняем ордер [${orderId}] ${swap ? '(need swap)' : ''}`)
   const order = makeReadable(filterTextKeys(await payerV3.orders(orderId)))
   order.additionalAmount = additionalAmount
@@ -322,10 +341,25 @@ function isUsdTokenCheck(token) {
   return usdTokens.includes(token.toLowerCase())
 }
 function getReadebleTimestamp(timestamp) {
+  
   const pad = (n, s = 2) => (`${new Array(s).fill(0)}${n}`).slice(-s)
   const d = new Date(timestamp * 1000)
-  d.setUTCHours(10)// convert to locale time zone
-  return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${pad(d.getFullYear(), 4)} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  const hours = pad(d.getHours()+2)
+  return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${pad(d.getFullYear(), 4)} ${hours}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+}
+async function apiGetUserOrders(userAddress) {
+  return new Promise((resolve) => {
+    axios
+      .get(
+        `${apiUrl}/user_orders?userAddress=${userAddress}`
+      )
+      .then(function (response) {
+        resolve(response.data.data)
+      })
+      .catch(function (error) {
+        console.log(error)
+      })
+  })
 }
 main()
   .then(() => process.exit(0))

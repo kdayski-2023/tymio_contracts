@@ -31,6 +31,7 @@ module.exports = {
       throwOnCallFailures: true,
       allowUnlimitedContractSize: true,
       accounts: { count: 100 },
+      gas: 30e6,
     },
     mainet: {
       network_id: 1,

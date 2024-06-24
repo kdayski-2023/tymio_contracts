@@ -11,6 +11,9 @@ const app = express()
 app.use(cors())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
+app.get('/', (req, res) => {
+    res.send('Version 0.1')
+  })
 app.post('/rpc', jayson.server(router.rpc).middleware())
 app.post('/tymio', jayson.server(router.tymio).middleware())
 app.listen(5001, async () => {
