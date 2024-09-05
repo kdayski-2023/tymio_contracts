@@ -54,8 +54,8 @@ async function main() {
     orderTimestamps.push(order.endTimestamp)
 
     // Подробное время
-    // console.log(`[${orderId}] ${getReadebleTimestamp(order.endTimestamp)}`)
-    
+    console.log(`[${orderId}] ${getReadebleTimestamp(order.endTimestamp)}`)
+
     const needSwap = contractParams._params[1][i]
     let amountTxt = ''
     if (needSwap) {
@@ -80,9 +80,9 @@ async function main() {
 
       if (!bn(order.price).eq(bn(findedOrder.price * 1000000))) {
         console.log(`   [${orderId}] Ошибка цены ${order.price} != ${findedOrder.price * 1000000}`)
-      }else{
+      } else {
         // console.log(`   [${orderId}] Correct ${order.price} != ${findedOrder.price * 1000000}`)
-        console.log(`   [${orderId}] Correct`)
+        console.log(`   [${orderId}] Correct (${order.price})`)
       }
       // if (order._tokenIn.name == 'WBTC') {
       //   if(btcPrice < apiOrderPrice && needSwap){
@@ -341,10 +341,10 @@ function isUsdTokenCheck(token) {
   return usdTokens.includes(token.toLowerCase())
 }
 function getReadebleTimestamp(timestamp) {
-  
+
   const pad = (n, s = 2) => (`${new Array(s).fill(0)}${n}`).slice(-s)
   const d = new Date(timestamp * 1000)
-  const hours = pad(d.getHours()+2)
+  const hours = pad(d.getHours() + 2)
   return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${pad(d.getFullYear(), 4)} ${hours}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 async function apiGetUserOrders(userAddress) {

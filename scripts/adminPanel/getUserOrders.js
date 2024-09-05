@@ -2,6 +2,7 @@ const { filterTextKeys, getNetworkName, makeReadable, convertTokenAmount, readab
 const axios = require('axios')
 const deployments = require('../../deployments')
 const apiUrl = 'https://api.tymio.com/api' //https://mars2.fanil.ru/api
+const needUserAddress = '0xb64d47836b165e432e1a7a938f56d23fed1daf4a'
 const bn = ethers.BigNumber.from;
 let payerV3,
     block,
@@ -17,19 +18,8 @@ const acceptableTokensArray = []
 const balances = {}
 const additionalAmounts = []
 const usdTokens = []
-const checkedOrders = []
-const alreadyClaimedAndComplited = {
-    1:
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-            12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
-            24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
-            36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
-            48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
-            60, 61, 62, 63, 64, 66, 67, 68, 69, 70, 71, 72,
-            73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84,
-            85, 86, 88, 89, 91, 92],
-    42161: []
-}
+
+
 async function main() {
     const blockNumber = await ethers.provider.getBlockNumber();
     block = await ethers.provider.getBlock(blockNumber);
@@ -54,12 +44,12 @@ async function main() {
         }
 
     }
+    console.log(additionalAmounts)
     const contractOrders = {}
     const startFrom = 0
     let ordersLength = 10000
-    for (let orderId = startFrom; orderId <= ordersLength; orderId++) {        
-        if(alreadyClaimedAndComplited[chainId].includes(orderId)) continue
-        try {            
+    for (let orderId = startFrom; orderId <= ordersLength; orderId++) {
+        try {
             const order = makeReadable(filterTextKeys(await payerV3.orders(orderId)))
             order._endTimestamp = getReadebleTimestamp(order.endTimestamp)
             order._orderId = orderId
@@ -72,41 +62,11 @@ async function main() {
     // check Payer address balances
 
     for (let orderId = startFrom; orderId <= ordersLength; orderId++) {
-        if(alreadyClaimedAndComplited[chainId].includes(orderId)) continue
         const order = contractOrders[orderId]
-        console.log(`[${orderId}] ${order.completed} ${order.claimed} ${order.additionalAmount} `)
-        if (order.claimed && order.completed) {
-            checkedOrders.push(orderId)
+        // console.log(`[${orderId}] ${order.completed} ${order.claimed} ${order.additionalAmount} `)
+        if (order.user.toLowerCase() == needUserAddress) {
+            console.log(order)
         }
-        if (!order.claimed && order.additionalAmount > 0) {
-            console.log(` Not yet claimed`)
-            let payToken = order.tokenIn
-            if (isUsdTokenCheck(order.tokenIn)) {
-                payToken = order._tokenIn
-            }
-            if (isUsdTokenCheck(order.tokenOut)) {
-                payToken = order._tokenOut
-            }
-            if (!isUsdTokenCheck(order.tokenIn) && !isUsdTokenCheck(order.tokenOut)) {
-                const userOrders = await apiGetUserOrders(order.user)
-                const findedOrder = userOrders.find(o => o.contract_id == orderId && o.contract_version == 3)
-                payToken = replaceAddress(findedOrder.usd_address)
-            }
-
-            const finded = additionalAmounts.find((o) => o.token == payToken.address)
-            finded.additionalAmount += Number(order.additionalAmount)
-            console.log(`   +${readableTokenAmount(payToken, order.additionalAmount)} ${payToken.name}`)
-        }
-
-    }
-    console.log(checkedOrders)
-    console.log(`Выплаты пользователям:`)
-    for (const additionalAmountToken of additionalAmounts) {
-        const additionalToken = replaceAddress(additionalAmountToken.token)
-        const needPay = additionalAmountToken.additionalAmount
-        const avalible = additionalAmountToken.payerBalance
-        const znak = avalible - needPay > 0 ? '+' : ''
-        console.log(`${additionalToken.short} ${readableTokenAmount(additionalToken, needPay)} Доступно: ${readableTokenAmount(additionalToken, avalible)} Итог: ${znak}${readableTokenAmount(additionalToken, avalible - needPay)}}`)
     }
 }
 
