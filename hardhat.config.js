@@ -48,6 +48,13 @@ module.exports = {
       gas: 8e6,
       gasPrice: 100000000,
     },
+    base: {
+      network_id: 8453,
+      url: 'https://base-mainnet.infura.io/v3/9300fcead7b044fe9a88ec01533a6255',
+      accounts: [DEPLOYER_PRIVATE_KEY],
+      gas: 8e6,
+      gasPrice: 10000000,// 0.01 Gwei
+    },
     sepolia: {
       network_id: 11155111,
       url: 'https://sepolia.gateway.tenderly.co',
