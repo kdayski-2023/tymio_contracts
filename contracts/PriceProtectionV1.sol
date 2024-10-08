@@ -193,12 +193,11 @@ contract PriceProtectionV1 {
     function _executeOrder(uint256 orderId, uint256 additionalAmount, bool exec) private {
         Order storage order = orders[orderId];
         order.completed = true;
-        
+        balances[order.token][payerAddress] = balances[order.token][payerAddress] + order.amount;
         if (exec) {
             order.additionalAmount = additionalAmount;            
         } else{
-            order.claimed = true;
-            balances[order.token][payerAddress] = balances[order.token][payerAddress] + order.amount;
+            order.claimed = true;            
             emit UpdateBalance(
                 payerAddress,
                 order.token,
@@ -230,8 +229,7 @@ contract PriceProtectionV1 {
             if (msg.sender != order.user) {
                 revert Errors.AvailableOnlyOwner();
             }
-        }
-        balances[order.token][order.user] = balances[order.token][order.user] + order.amount;
+        }        
         order.claimed = true;
         if (msg.sender == order.user) {
             _updateUserActionTime();            
