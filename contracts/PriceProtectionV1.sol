@@ -29,8 +29,8 @@ contract PriceProtectionV1 {
 
     struct ExecuteOrderParams {
         uint256[] orderIds;
-        uint256[] additionalAmount;
         bool[] exec;
+        uint256[] additionalAmount;
     }
 
     constructor() {
