@@ -123,43 +123,38 @@ describe('Expiration', async () => {
 			expect(contractOrder.amount).to.equal(
 				sToken(order.amount, order.token)
 			);
+			const additionalAmount = order.order_executed ? order.additionalAmount : 0
 			expect(contractOrder.additionalAmount).to.equal(
-				sToken(order.additionalAmount, 'USD')
+				sToken(additionalAmount, 'USD')
 			);
 			expect(contractOrder.completed).to.be.true;
-			expect(contractOrder.claimed).to.be.false;
+			expect(contractOrder.claimed).to.equal(
+				!order.order_executed
+			);
 		}
 	});
-	// it('Claim orders', async () => {
-	//   await claimOrders(payer, expiration, tokensV3);
-
-	//   const now = new BN(new Date().getTime() / 1000);
-	//   for (const order of expiration.orders) {
-	//     const contractOrder = await payer.orders(order.contract_id);
-	//     expect(contractOrder.user).to.equal(order.user);
-	//     expect(contractOrder.tokenIn).to.equal(
-	//       tokensV3[tokensV1[order.tokenIn]].address
-	//     );
-	//     expect(contractOrder.amountIn).to.equal(
-	//       sToken(order.amountIn, tokensV1[order.tokenIn])
-	//     );
-	//     expect(contractOrder.tokenOut).to.equal(
-	//       tokensV3[tokensV1[order.tokenOut]].address
-	//     );
-	//     expect(contractOrder.amountOut).to.equal(
-	//       sToken(order.amountOut, tokensV1[order.tokenOut])
-	//     );
-	//     expect(contractOrder.price).to.equal(sToken(order.price, 'USD'));
-	//     expect(contractOrder.additionalAmount).to.equal(
-	//       sToken(order.additionalAmount, 'USD')
-	//     );
-	//     expect(contractOrder.completed).to.be.true;
-	//     expect(contractOrder.claimed).to.be.true;
-	//   }
-	// });
-	// it('Check contract balances', async () => {
-	//   await checkContractBalances(payer, expiration, tokensV3);
-	// });
+	it('Claim orders', async () => {
+		await claimOrders(payer, expiration, tokensV3);
+		for (const order of expiration.orders) {
+			const contractOrder = await payer.orders(order.contract_id);
+			expect(contractOrder.user).to.equal(order.user);
+			expect(contractOrder.token).to.equal(
+				tokensV3[order.token].address
+			);
+			expect(contractOrder.amount).to.equal(
+				sToken(order.amount, order.token)
+			);
+			const additionalAmount = order.order_executed ? order.additionalAmount : 0
+			expect(contractOrder.additionalAmount).to.equal(
+				sToken(additionalAmount, 'USD')
+			);
+			expect(contractOrder.completed).to.be.true;
+			expect(contractOrder.claimed).to.be.true;
+		}
+	});
+	it('Check contract balances', async () => {
+		await checkContractBalances(payer, expiration, tokensV3);
+	});
 	// it('Full withdrawal', async () => {
 	//   await fullWithdrawal(payer, expiration, tokensV3);
 	// });

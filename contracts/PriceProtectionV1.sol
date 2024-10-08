@@ -181,7 +181,6 @@ contract PriceProtectionV1 {
             }
             
             _executeOrder(_params.orderIds[i], _params.additionalAmount[i], _params.exec[i]);
-            claimOrder(_params.orderIds[i], false);
             unchecked {
                 ++i;
             }

@@ -121,25 +121,20 @@ async function executeOrders(
 	}
 }
 
-async function claimOrders(payer, expiration, tokensV3) {
-	const id = 0;
-	const user = expiration.orders[0].signer;
-	let claimTokenAddress = tokensV3['WBTC'].address;
-	const args = [id, claimTokenAddress, false];
-	expect(
-		payer.connect(user).claimOrder(id, claimTokenAddress, false)
-	).to.be.revertedWith('IS NOT USD TOKEN');
+async function claimOrders(payer, expiration) {
 	for (const order of expiration.orders) {
 		const id = order.contract_id;
 		const user = order.signer;
-		const claimTokenAddress = tokensV3['USDC'].address;
 		expect(user.address).to.equal(order.user);
-		tx = await payer.connect(user).claimOrder(id, claimTokenAddress, false);
-		tx = await tx.wait();
+		if (order.order_executed) {
+			tx = await payer.connect(user).claimOrder(id, false);
+			tx = await tx.wait();
+		} else {
+			expect(payer.connect(user).claimOrder(id, false)).to.be.revertedWith(
+				'ORDER ALREADY CLAIMED'
+			);
+		}
 	}
-	expect(payer.connect(user).claimOrder(...args)).to.be.revertedWith(
-		'ORDER ALREADY CLAIMED'
-	);
 }
 
 async function fullWithdrawal(payer, expiration, tokensV3) {
@@ -284,34 +279,17 @@ async function checkEmptyBalances(payer, expiration, tokensV3) {
 async function checkContractBalances(payer, expiration, tokensV3) {
 	const balanceNeed = {};
 	for (const order of expiration.orders) {
-		const tokenOutSymbol = tokensV1[order.tokenOut];
-		const usdcSymbol = 'USDC';
 		const address = order.user;
-		if (tokenOutSymbol === usdcSymbol) {
-			const additionalAmount = parseFloat(order.additionalAmount);
-			const amountOut = parseFloat(order.amountOut);
-			const balanceUsdcNeed = amountOut + additionalAmount;
-			if (balanceNeed[address]) {
-				if (balanceNeed[address]['USDC'])
-					balanceNeed[address]['USDC'] =
-						balanceNeed[address]['USDC'] + balanceUsdcNeed;
-				else balanceNeed[address]['USDC'] = balanceUsdcNeed;
-			} else balanceNeed[address] = { USDC: balanceUsdcNeed };
-		} else {
-			const additionalAmount = parseFloat(order.additionalAmount);
-			const balanceUsdcNeed = additionalAmount;
-			if (balanceNeed[address]) {
-				if (balanceNeed[address]['USDC'])
-					balanceNeed[address]['USDC'] =
-						balanceNeed[address]['USDC'] + balanceUsdcNeed;
-				else balanceNeed[address]['USDC'] = balanceUsdcNeed;
-			} else balanceNeed[address] = { USDC: balanceUsdcNeed };
 
-			if (balanceNeed[address][tokenOutSymbol])
-				balanceNeed[address][tokenOutSymbol] =
-					balanceNeed[address][tokenOutSymbol] + order.amountOut;
-			else balanceNeed[address][tokenOutSymbol] = order.amountOut;
-		}
+		const additionalAmount = parseFloat(order.additionalAmount);
+		const amountOut = parseFloat(order.amountOut);
+		const balanceUsdcNeed = amountOut + additionalAmount;
+		if (balanceNeed[address]) {
+			if (balanceNeed[address]['USDC'])
+				balanceNeed[address]['USDC'] =
+					balanceNeed[address]['USDC'] + balanceUsdcNeed;
+			else balanceNeed[address]['USDC'] = balanceUsdcNeed;
+		} else balanceNeed[address] = { USDC: balanceUsdcNeed };
 	}
 
 	for (const [address, tokens] of Object.entries(balanceNeed)) {
