@@ -16,8 +16,6 @@ library Errors {
     error OrderAlreadyClaimed();
     error OrderNotCompleted();
     error OrderAlreadyCompleted();
-    error SameTokens();
-    error WrongAdditionalAmount();
     error WrongAmount();
     error WrongExpirationTime();
     error WrongTimestamp();

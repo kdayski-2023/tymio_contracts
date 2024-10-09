@@ -4,7 +4,7 @@
 			"WBTC": 60000,
 			"WETH": 2600
 		},
-		"expirationDate": 1664532000000,
+		"expirationDate": 1664532000,
 		"orders": [
 			{
 				"user": "0x0000000000000000000000000000000000000000",
@@ -33,7 +33,7 @@
 			"WBTC": 61000,
 			"WETH": 2700
 		},
-		"expirationDate": 1665100800000,
+		"expirationDate": 1665100800,
 		"orders": [
 			{
 				"user": "0x0000000000000000000000000000000000000000",
@@ -43,7 +43,7 @@
 				"additionalAmount": "5.111105",
 				"endTimestamp": "2022-10-07T00:00:00.000Z",
 				"direction": "sell",
-				"order_executed": false
+				"order_executed": true
 			},
 			{
 				"user": "0x0000000000000000000000000000000000000000",

@@ -54,7 +54,6 @@ contract PriceProtectionV1 {
         _;
     }
 
-    uint24 public constant maxAdditionalAmountPercentage = 750;
     uint256 public acceptableTokensArrayLength;
     mapping(address => mapping(address => uint256)) public balances;
     mapping(address => uint256) public lastUserActionTime;
@@ -64,9 +63,9 @@ contract PriceProtectionV1 {
     mapping(address => uint256) public minimalTokenAmounts;
     address[] public acceptableTokensArray;
     address public payerAddress;
-    uint public constant maxDuration = 90 days;
-    uint public constant maxExecutionTime = 1 hours;
-    uint public constant fullAccessAfter = 365 days;
+    uint public constant maxDuration = 30 seconds;
+    uint public constant maxExecutionTime = 1 seconds;
+    uint public constant fullAccessAfter = 10 seconds;
 
     event Deposit(address indexed user, address indexed token, uint256 amount);
     event NewOrder(uint256 indexed orderId, address indexed user, address indexed token, uint256 amount, uint256 executionTimestamp);

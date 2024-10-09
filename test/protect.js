@@ -60,7 +60,6 @@ async function postOrders(payer, expiration, _executionTimestamp, tokensV3) {
 		const token = tokensV3[order.token];
 		const _amount = sToken(order.amount, order.token);
 		const _tokenAddress = tokensV3[order.token].address
-
 		tx = await token.connect(order.signer).approve(payer.address, _amount);
 		tx = await tx.wait();
 		tx = await payer
@@ -138,35 +137,23 @@ async function claimOrders(payer, expiration) {
 }
 
 async function fullWithdrawal(payer, expiration, tokensV3) {
-	const usdcAddress = tokensV3['USDC'].address;
-	const wethAddress = tokensV3['WETH'].address;
-	const wbtcAddress = tokensV3['WBTC'].address;
-	for (const order of expiration.orders) {
-		const signer = order.signer;
-		const address = order.user;
-		const balanceWeth = await payer.balanceOf(wethAddress, address);
-		const balanceWbtc = await payer.balanceOf(wbtcAddress, address);
-		const balanceUsdc = await payer.balanceOf(usdcAddress, address);
-		if (cToken(balanceWeth, 'WETH') > 0) {
-			tx = await payer.connect(signer).fullWithdrawalETH(balanceWeth);
-			tx = await tx.wait();
-		}
-		if (cToken(balanceWbtc, 'WBTC') > 0) {
-			tx = await payer.connect(signer).fullWithdrawal(wbtcAddress, balanceWbtc);
-			tx = await tx.wait();
-		}
-		if (cToken(balanceUsdc, 'USDC') > 0) {
-			tx = await payer.connect(signer).fullWithdrawal(usdcAddress, balanceUsdc);
-			tx = await tx.wait();
+	for (const token of Object.keys(tokensV3)) {
+		if (typeof token === 'object') {
+			for (const order of expiration.orders) {
+				const signer = order.signer;
+				const address = order.user;
+				const symbol = await token.symbol()
+				const balance = await payer.balanceOf(token.address, address);
+				if (cToken(balance, symbol) > 0) {
+					tx = await payer.connect(signer).fullWithdrawal(token.address, balance);
+					tx = await tx.wait();
+				}
+			}
 		}
 	}
 
 	const user = expiration.orders[0].signer;
-	let args = [sToken(1, 'ETH')];
-	expect(payer.connect(user).fullWithdrawalETH(...args)).to.be.revertedWith(
-		'NOT ENOUGH WETH TOKENS ON THE BALANCE'
-	);
-	args = [usdcAddress, sToken(1, 'USDC')];
+	const args = [tokensV3['USDC'].address, sToken(1, 'USDC')];
 	expect(payer.connect(user).fullWithdrawal(...args)).to.be.revertedWith(
 		'NOT ENOUGH TOKENS ON THE BALANCE'
 	);
@@ -234,23 +221,23 @@ async function deployPayer(contract = 'PayerV3') {
 	return payer;
 }
 
-async function compareBalanceUsdc(
+async function compareBalance(
 	payer,
-	balanceUsdcNeed,
-	usdcAddress,
-	usdcSymbol,
+	balanceNeed,
+	usdAddress,
+	usdSymbol,
 	address
 ) {
-	const balanceUsdc = cToken(
-		await payer.balanceOf(usdcAddress, address),
-		usdcSymbol
+	const balance = cToken(
+		await payer.balanceOf(usdAddress, address),
+		usdSymbol
 	);
-	balanceUsdcNeed = cToken(
-		convertFloatToBnString(balanceUsdcNeed, DECIMALS.USDC),
+	balanceNeed = cToken(
+		convertFloatToBnString(balanceNeed, DECIMALS.USDC),
 		'USDC'
 	);
-	expect(parseFloat(balanceUsdc)).to.be.above(0);
-	expect(parseFloat(balanceUsdc) - parseFloat(balanceUsdcNeed)).to.be.below(
+	expect(parseFloat(balance)).to.be.above(0);
+	expect(parseFloat(balance) - parseFloat(balanceNeed)).to.be.below(
 		0.001
 	);
 }
@@ -258,66 +245,48 @@ async function compareBalanceUsdc(
 async function checkEmptyBalances(payer, expiration, tokensV3) {
 	for (const order of expiration.orders) {
 		const user = order.user;
-		const balanceUsdc = cToken(
-			await payer.balanceOf(tokensV3['USDC'].address, user),
-			['USDC']
-		);
-		const balanceWeth = cToken(
-			await payer.balanceOf(tokensV3['WETH'].address, user),
-			['WETH']
-		);
-		const balanceWbtc = cToken(
-			await payer.balanceOf(tokensV3['WBTC'].address, user),
-			['WBTC']
-		);
-		expect(parseFloat(balanceUsdc)).to.equal(0);
-		expect(parseFloat(balanceWeth)).to.equal(0);
-		expect(parseFloat(balanceWbtc)).to.equal(0);
+		for (const token of Object.keys(tokensV3)) {
+			if (typeof token === 'object') {
+				const symbol = await token.symbol()
+				const balance = cToken(
+					await payer.balanceOf(token.address, user),
+					[symbol]
+				);
+				expect(parseFloat(balance)).to.equal(0);
+			}
+		}
 	}
 }
 
 async function checkContractBalances(payer, expiration, tokensV3) {
 	const balanceNeed = {};
 	for (const order of expiration.orders) {
+		const contractOrder = await payer.orders(order.contract_id);
 		const address = order.user;
-
-		const additionalAmount = parseFloat(order.additionalAmount);
-		const amountOut = parseFloat(order.amountOut);
-		const balanceUsdcNeed = amountOut + additionalAmount;
+		const balanceUsdcNeed = parseFloat(cToken(contractOrder.additionalAmount, 'USD'));
 		if (balanceNeed[address]) {
-			if (balanceNeed[address]['USDC'])
-				balanceNeed[address]['USDC'] =
-					balanceNeed[address]['USDC'] + balanceUsdcNeed;
-			else balanceNeed[address]['USDC'] = balanceUsdcNeed;
-		} else balanceNeed[address] = { USDC: balanceUsdcNeed };
+			if (balanceNeed[address][order.token])
+				balanceNeed[address][order.token] =
+					balanceNeed[address][order.token] + balanceUsdcNeed;
+			else balanceNeed[address][order.token] = balanceUsdcNeed;
+		} else {
+			const res = {}
+			res[order.token] = balanceUsdcNeed
+			balanceNeed[address] = res
+		};
 	}
 
 	for (const [address, tokens] of Object.entries(balanceNeed)) {
 		for (const [tokenSymbol, value] of Object.entries(tokens)) {
 			const tokenAddress = tokensV3[tokenSymbol].address;
 
-			if (tokenSymbol === 'USDC')
-				await compareBalanceUsdc(
-					payer,
-					value,
-					tokenAddress,
-					tokenSymbol,
-					address
-				);
-			else {
-				const balance = cToken(
-					await payer.balanceOf(tokenAddress, address),
-					tokenSymbol
-				);
-				const valueNeed = cToken(
-					convertFloatToBnString(value, DECIMALS[tokenSymbol]),
-					tokenSymbol
-				);
-				expect(parseFloat(balance)).to.be.above(0);
-				expect(parseFloat(balance) - parseFloat(valueNeed)).to.be.below(
-					0.0000001
-				);
-			}
+			await compareBalance(
+				payer,
+				value,
+				tokenAddress,
+				tokenSymbol,
+				address
+			);
 		}
 	}
 }
@@ -325,7 +294,7 @@ async function checkContractBalances(payer, expiration, tokensV3) {
 async function mintTokens(accounts, tokensV3) {
 	for (const account of accounts) {
 		for (const token of Object.keys(tokensV3)) {
-			if (token !== 'WETH' && typeof (tokensV3[token]) === 'object') {
+			if (typeof (tokensV3[token]) === 'object') {
 				tx = await tokensV3[token].mint(account.address, sToken(1000000, token));
 				await tx.wait();
 			}
@@ -341,7 +310,7 @@ async function setAcceptableTokens(payer, tokens) {
 	let idx = 0
 	for (const token of Object.keys(tokens)) {
 		if (typeof (tokens[token]) === 'object') {
-			tx = await payer.editAcceptableToken(tokens[token].address, true, true, 1);
+			tx = await payer.editAcceptableToken(tokens[token].address, true, true, '1000000');
 			await tx.wait();
 			expect(await payer.acceptableTokensArray(idx)).to.equal(tokens[token].address);
 			idx++
