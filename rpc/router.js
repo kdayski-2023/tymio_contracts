@@ -26,20 +26,28 @@ const Router = {
 
             if (args.prices != undefined) {
                 jsonPrices = args.prices;
+                if(args.prices.WETH.sell !=undefined){
+                    jsonPrices.ETH = args.prices.WETH.sell.USDC
+                    jsonPrices.BTC = args.prices.WBTC.sell.USDC
+                }
             } else {
                 jsonPrices = JSON.parse(fs.readFileSync('./temp/defaultPrices.json', 'utf8'));
             }
-            if(args.prices.WETH.sell !=undefined){
-                jsonPrices.ETH = args.prices.WETH.sell.USDC
-                jsonPrices.BTC = args.prices.WBTC.sell.USDC
-            }
+            
             fs.writeFileSync('./temp/prices.json', JSON.stringify(jsonPrices), 'utf8', function (err) {
                 if (err) {
                     return console.log(err);
                 }
                 console.log("The file was saved!");
             });
-            exec(`npx hardhat run ./scripts/adminPanel/rpcExpirationCheck.js --network ${networkName}`, args)
+            let fileExpiration = 'rpcExpirationCheckYield.js'
+            console.log(args.app)
+            if(args.app){
+                if(args.app === 'protect'){
+                    fileExpiration = 'rpcExpirationCheckProtect.js'
+                }
+            }
+            exec(`npx hardhat run ./scripts/adminPanel/${fileExpiration} --network ${networkName}`, args)
             callback(null, trace("exec started..."))
         }
     },

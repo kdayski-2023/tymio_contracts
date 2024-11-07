@@ -12,19 +12,19 @@ async function main() {
         wethAddress: '0x4200000000000000000000000000000000000006'
     }
 
-    const Payer = await hre.ethers.getContractFactory('PayerV3');
+    const Payer = await hre.ethers.getContractFactory('PayerV3Base');
     let payer = await Payer.deploy();
     payer = await payer.deployed();
     const payerAddress = payer.address;
-    console.log(`${payerAddress}: PayerV3`);
+    console.log(`${payerAddress}: PayerV3Base`);
     tx = await payer.editAcceptableToken(settings.usdcAddress, true, true, "10000000");
     await tx.wait();
     tx = await payer.editAcceptableToken(settings.wethAddress, true, false, "2600000000000000");
     await tx.wait();
-    tx = await payer.setOwner2Address(owner2);
-    await tx.wait();
-    tx = await payer.setOwner1Address(owner1);
-    await tx.wait();
+    // tx = await payer.setOwner2Address(owner2);
+    // await tx.wait();
+    // tx = await payer.setOwner1Address(owner1);
+    // await tx.wait();
 
     console.log('All contract settings are set');
 }

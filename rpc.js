@@ -5,8 +5,6 @@ const bodyParser = require('body-parser')
 const jayson = require('jayson')
 const router = require('./rpc/router')
 
-const port = 5001
-
 const app = express()
 app.use(cors())
 app.use(bodyParser.urlencoded({ extended: true }))
