@@ -53,7 +53,7 @@ module.exports = {
       url: 'https://base-mainnet.infura.io/v3/9300fcead7b044fe9a88ec01533a6255',
       accounts: [DEPLOYER_PRIVATE_KEY],
       gas: 8e6,
-      gasPrice: 10000000,// 0.01 Gwei
+      gasPrice: 40000000,// 0.02 Gwei
     },
     sepolia: {
       network_id: 11155111,
@@ -132,6 +132,7 @@ module.exports = {
       bscTestnet: 'GSYYDG6Z48HQ4ZC6K7XNBU9UTZI21GV38Y',
       arbsepolia: 'PZAWVZRJXA5AX3MIN9NPC4VATACGXK7YPN',
       arbitrumOne: 'PZAWVZRJXA5AX3MIN9NPC4VATACGXK7YPN',
+      base: '6BVNXCIYCMBNTQD4571ZKXCRGD5XUP2ZY7',
     },
     customChains: [
       {
@@ -140,6 +141,14 @@ module.exports = {
         urls: {
           apiURL: "https://api-sepolia.arbiscan.io/api",
           browserURL: "https://sepolia.arbiscan.io"
+        }
+      },
+      {
+        network: "base",
+        chainId: 8453,
+        urls: {
+          apiURL: "https://api.basescan.org/api",
+          browserURL: "https://api.basescan.org/api"
         }
       }
     ]

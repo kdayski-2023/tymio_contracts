@@ -21,10 +21,10 @@ async function main() {
     await tx.wait();
     tx = await payer.editAcceptableToken(settings.wethAddress, true, false, "2600000000000000");
     await tx.wait();
-    // tx = await payer.setOwner2Address(owner2);
-    // await tx.wait();
-    // tx = await payer.setOwner1Address(owner1);
-    // await tx.wait();
+    tx = await payer.setOwner2Address(owner2);
+    await tx.wait();
+    tx = await payer.setOwner1Address(owner1);
+    await tx.wait();
 
     console.log('All contract settings are set');
 }
