@@ -129,7 +129,7 @@ async function main() {
     finded.additionalAmount += Number(additionalAmount)
   }
   console.log(`Нужно выплатить всего: ${sum} USD`)
-  console.log(`Выплаты пользователям:`)
+  console.log(`[${networkName}] Выплаты пользователям:`)
   for (const additionalAmountToken of additionalAmounts) {
     const additionalToken = replaceAddress(additionalAmountToken.token)
     console.log(`${additionalToken.short} ${readableTokenAmount(additionalToken, additionalAmountToken.additionalAmount)} Доступно ${readableTokenAmount(additionalToken, additionalAmountToken.payerBalance)}`)
@@ -234,7 +234,6 @@ async function emulateExecution(_params, _amountOutMinimum, _claimOrders, _usdCl
         if (isUsdTokenCheck(tokenIn.address) && tokenOut.name == 'WETH') {
           amountOut = swapInAmount.mul(10 ** 10).div(ethPrice).mul(1e8)
         }
-
         console.log(`   Получим при обмене (amountOut) ~${readableTokenAmount(tokenOut, amountOut)} (${amountOut})`);
         console.log(`   Минимум который хотели получить (amountOutMinimum) ${readableTokenAmount(tokenOut, _amountOutMinimum[swapsCount])} (${_amountOutMinimum[swapsCount]})`);
         console.log(`   Обменяли больше чем минимально ожидаемое? ${amountOut.gt(bn(_amountOutMinimum[swapsCount]))}`)

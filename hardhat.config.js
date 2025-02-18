@@ -38,7 +38,7 @@ module.exports = {
       url: 'https://mainnet.infura.io/v3/facd693a8e764005bf265d603b34a4f9',
       accounts: [DEPLOYER_PRIVATE_KEY],
       gas: 8e6,
-      gasPrice: 5000000000,
+      gasPrice: 1000000000,
     },
     arbitrum: {
       network_id: 42161,
